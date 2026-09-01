@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Recruitment vacancies and candidates for Bloxt.">
+  <title>Recruitment Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Recruitment</h1>
+            <p class="page-subtitle">Open vacancies and candidate records.</p>
+          </div>
+          <button class="btn btn-primary" id="newVacancyBtn"><i class="bi bi-plus-lg"></i> New Vacancy</button>
+        </div>
+      </div>
+      <div class="app-content">
+        <div class="disclaimer-note mb-4"><i class="bi bi-info-circle"></i><span>Recruitment channel and process requirements (such as any labour market test) vary by role and route this system records the process actually followed rather than assuming one is universally required.</span></div>
+        <div id="vacancyList" class="row g-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="vacancyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <form id="vacancyForm">
+          <div class="modal-header"><h2 class="modal-title h5">New Vacancy</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Job title<span class="required-indicator">*</span></label><input class="form-control" name="jobTitle" required></div>
+              <div class="form-field"><label class="form-label">Department</label><select class="form-select" name="departmentId" id="vacDeptSelect"></select></div>
+              <div class="form-field"><label class="form-label">Hiring manager</label><input class="form-control" name="hiringManager"></div>
+              <div class="form-field"><label class="form-label">Employment type</label><select class="form-select" name="employmentType" id="vacTypeSelect"></select></div>
+              <div class="form-field"><label class="form-label">Opening date</label><input type="date" class="form-control" name="openingDate"></div>
+              <div class="form-field"><label class="form-label">Closing date</label><input type="date" class="form-control" name="closingDate"></div>
+              <div class="form-field"><label class="form-label">Salary range min (£)</label><input type="number" class="form-control" name="salaryRangeMin"></div>
+              <div class="form-field"><label class="form-label">Salary range max (£)</label><input type="number" class="form-control" name="salaryRangeMax"></div>
+            </div>
+            <div class="mt-3 form-grid-2">
+              <div class="form-field"><label class="form-label">Location</label><input class="form-control" name="location"></div>
+              <div class="form-field"><label class="form-label">Recruitment channel</label><input class="form-control" name="recruitmentChannel" placeholder="e.g. Company careers page"></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Reason for vacancy</label><input class="form-control" name="reasonForVacancy"></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Vacancy</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="candidateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="candidateForm">
+          <input type="hidden" name="vacancyId">
+          <div class="modal-header"><h2 class="modal-title h5">Add Candidate</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Candidate name<span class="required-indicator">*</span></label><input class="form-control" name="name" required></div>
+              <div class="form-field"><label class="form-label">Application date</label><input type="date" class="form-control" name="applicationDate"></div>
+              <div class="form-field"><label class="form-label">Source</label><input class="form-control" name="source"></div>
+              <div class="form-field"><label class="form-label">Outcome</label><select class="form-select" name="outcome"><option>In Progress</option><option>Offered</option><option>Hired</option><option>Rejected</option><option>Withdrawn</option></select></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Interview records</label><textarea class="form-control" name="interviewRecords" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Candidate</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "recruitment" });
+    if (!user) return;
+    const db = HR.db, fmt = HR.format;
+
+    function renderVacancies() {
+      const vacancies = db.vacancies.all();
+      document.getElementById("vacancyList").innerHTML = vacancies.length ? vacancies.map((v) => `
+        <div class="col-12">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">${v.jobTitle} <span class="text-meta">${HR.employees.departmentName(v.departmentId)}</span></div>
+                <div class="panel-desc">${v.employmentType} · ${v.location} · ${fmt.currency(v.salaryRangeMin)} – ${fmt.currency(v.salaryRangeMax)} · Closes ${fmt.date(v.closingDate)}</div>
+              </div>
+              <div class="d-flex align-items-center gap-2">${fmt.statusBadge(v.status)}<button class="btn btn-sm btn-outline-primary add-candidate-btn" data-vac="${v.id}"><i class="bi bi-person-plus"></i> Add Candidate</button></div>
+            </div>
+            <table class="table-app" id="candidatesTable-${v.id}" style="width:100%;">
+              <thead><tr><th>Candidate</th><th>Applied</th><th>Source</th><th>Interview Notes</th><th>Outcome</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>`).join("") : `<div class="col-12"><div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-person-plus"></i></div><div class="empty-state-title">No open vacancies</div><div class="empty-state-text">Create a vacancy to begin tracking candidates for a role.</div></div></div></div>`;
+
+      vacancies.forEach((v) => {
+        HR.ui.initDataTable(`#candidatesTable-${v.id}`, {
+          data: db.candidates.find((c) => c.vacancyId === v.id),
+          paging: false, info: false,
+          order: [[1, "desc"]],
+          emptyIcon: "bi-person",
+          emptyTitle: "No candidates yet",
+          emptyText: "Candidates who apply for this vacancy will appear here.",
+          columns: [
+            { data: "name", className: "cell-primary" },
+            { data: "applicationDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+            { data: "source" },
+            { data: "interviewRecords", className: "cell-secondary", render: (row) => row || "—" },
+            { data: "outcome", render: (row) => fmt.statusBadge(row) }
+          ]
+        });
+      });
+
+      document.querySelectorAll(".add-candidate-btn").forEach((btn) => btn.addEventListener("click", () => {
+        const form = document.getElementById("candidateForm");
+        form.reset();
+        form.elements["vacancyId"].value = btn.dataset.vac;
+        form.elements["applicationDate"].valueAsDate = new Date();
+        candidateModal.show();
+      }));
+    }
+
+    document.getElementById("vacDeptSelect").innerHTML = db.departments.all().map((d) => `<option value="${d.id}">${d.name}</option>`).join("");
+    document.getElementById("vacTypeSelect").innerHTML = HR.enums.EMPLOYMENT_TYPES.map((t) => `<option>${t}</option>`).join("");
+    const vacancyModal = new bootstrap.Modal(document.getElementById("vacancyModal"));
+    document.getElementById("newVacancyBtn").addEventListener("click", () => { document.getElementById("vacancyForm").reset(); vacancyModal.show(); });
+    document.getElementById("vacancyForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      db.vacancies.create(Object.assign(data, { salaryRangeMin: Number(data.salaryRangeMin) || 0, salaryRangeMax: Number(data.salaryRangeMax) || 0, jobDescriptionRef: null, status: "Open" }));
+      HR.audit.log({ action: "Vacancy created", module: "Recruitment", description: `Vacancy opened for ${data.jobTitle}.` });
+      vacancyModal.hide();
+      HR.ui.toastSuccess("Vacancy created", "The new vacancy has been added.");
+      renderVacancies();
+    });
+
+    const candidateModal = new bootstrap.Modal(document.getElementById("candidateModal"));
+    document.getElementById("candidateForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      db.candidates.create({ vacancyId: data.vacancyId, name: data.name, applicationDate: data.applicationDate, source: data.source, cvRef: null, interviewRecords: data.interviewRecords || "", outcome: data.outcome, offer: null, hiringDecision: null });
+      HR.audit.log({ action: "Candidate added", module: "Recruitment", description: `${data.name} added as a candidate.` });
+      candidateModal.hide();
+      HR.ui.toastSuccess("Candidate saved", `${data.name} has been added.`);
+      renderVacancies();
+    });
+
+    renderVacancies();
+  });
+  </script>
+</body>
+</html>

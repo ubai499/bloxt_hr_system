@@ -1,0 +1,57 @@
+@use "../abstracts/variables" as v;
+
+body {
+  font-family: v.$font-family-base;
+  font-size: v.$fs-body;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: v.$fw-semibold;
+  color: v.$color-text;
+  margin-top: 0;
+}
+
+.page-title {
+  font-size: v.$fs-page-title;
+  font-weight: v.$fw-semibold;
+  letter-spacing: -0.01em;
+  margin-bottom: v.$space-1;
+}
+
+.page-subtitle {
+  font-size: v.$fs-body-lg;
+  color: v.$color-text-secondary;
+  font-weight: v.$fw-regular;
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: v.$fs-section-title;
+  font-weight: v.$fw-semibold;
+  color: v.$color-text;
+}
+
+.text-meta {
+  font-size: v.$fs-meta;
+  color: v.$color-text-secondary;
+}
+
+.text-secondary-custom {
+  color: v.$color-text-secondary !important;
+}
+
+.text-muted-custom {
+  color: v.$color-text-muted !important;
+}
+
+small, .small {
+  font-size: v.$fs-meta;
+}
+
+.fw-medium { font-weight: v.$fw-medium; }
+.fw-semibold { font-weight: v.$fw-semibold; }
+
+code, pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}

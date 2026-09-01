@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Employee profile Bloxt HR.">
+  <title>Employee Profile Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar pb-0">
+        <div class="breadcrumb-trail"><a href="employees.html">Employees</a><span class="breadcrumb-sep">/</span><span id="breadcrumbName">Employee</span></div>
+      </div>
+      <div class="app-content" id="profileContent">
+        <div class="text-center py-5 text-secondary-custom">Loading employee record…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Employee modal -->
+  <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <form id="editEmployeeForm">
+          <div class="modal-header"><h2 class="modal-title h5">Edit Employee</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Job title</label><input class="form-control" name="jobTitle" required></div>
+              <div class="form-field"><label class="form-label">Department</label><select class="form-select" name="departmentId" id="editDepartmentId"></select></div>
+              <div class="form-field"><label class="form-label">Manager</label><select class="form-select" name="managerId" id="editManagerId"><option value="">No manager</option></select></div>
+              <div class="form-field"><label class="form-label">Employment type</label><select class="form-select" name="employmentType" id="editEmploymentType"></select></div>
+              <div class="form-field"><label class="form-label">Work location</label><select class="form-select" name="workLocationId" id="editWorkLocationId"></select></div>
+              <div class="form-field"><label class="form-label">Working arrangement</label><select class="form-select" name="workArrangement" id="editWorkArrangement"></select></div>
+              <div class="form-field"><label class="form-label">Weekly contracted hours</label><input type="number" step="0.5" class="form-control" name="weeklyHours"></div>
+              <div class="form-field"><label class="form-label">Employment status</label><select class="form-select" name="status" id="editStatus"></select></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Reason for change</label><input class="form-control" name="reason" placeholder="e.g. Internal transfer, promotion, review outcome"></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Changes</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Document modal -->
+  <div class="modal fade" id="uploadDocModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="uploadDocForm">
+          <div class="modal-header"><h2 class="modal-title h5">Upload Document</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-field mb-3"><label class="form-label">Document title<span class="required-indicator">*</span></label><input class="form-control" name="title" required></div>
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Category</label><select class="form-select" name="category" id="docCategorySelect"></select></div>
+              <div class="form-field"><label class="form-label">Access classification</label><select class="form-select" name="accessClassification" id="docClassificationSelect"></select></div>
+              <div class="form-field"><label class="form-label">Issue date</label><input type="date" class="form-control" name="issueDate"></div>
+              <div class="form-field"><label class="form-label">Expiry date</label><input type="date" class="form-control" name="expiryDate"></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+            <p class="form-text-help"><i class="bi bi-info-circle"></i> This prototype records document metadata only; a production system would securely store the underlying file.</p>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Document</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "employees" });
+    if (!user) return;
+    const db = HR.db, fmt = HR.format;
+    const params = new URLSearchParams(window.location.search);
+    const employeeId = params.get("id");
+    const emp = db.employees.get(employeeId);
+    const content = document.getElementById("profileContent");
+
+    if (!emp) {
+      content.innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-person-x"></i></div><div class="empty-state-title">Employee record not found</div><div class="empty-state-text">This employee may have been removed, or the link is out of date.</div><a href="employees.html" class="btn btn-primary">Back to Employees</a></div></div>`;
+      return;
+    }
+    document.getElementById("breadcrumbName").textContent = HR.employees.fullName(emp);
+    document.title = `${HR.employees.fullName(emp)} Bloxt People & Compliance`;
+
+    const canEdit = HR.auth.can("EDIT_EMPLOYEE");
+    const canViewSalary = HR.auth.can("VIEW_SALARY");
+    const canViewImmigration = HR.auth.can("VIEW_IMMIGRATION");
+
+    function renderShell() {
+      content.innerHTML = `
+        <div class="profile-header">
+          <span class="avatar-circle avatar-lg">${fmt.initials(emp.firstName, emp.lastName)}</span>
+          <div class="profile-header-info">
+            <div class="profile-name">${HR.employees.fullName(emp)} ${fmt.statusBadge(emp.status)}</div>
+            <div class="profile-role">${emp.jobTitle} · ${HR.employees.departmentName(emp.departmentId)}</div>
+            <div class="profile-meta-row">
+              <span><i class="bi bi-envelope"></i> ${emp.companyEmail}</span>
+              <span><i class="bi bi-person-check"></i> Manager: ${HR.employees.managerName(emp.managerId)}</span>
+              <span><i class="bi bi-calendar-event"></i> Started ${fmt.date(emp.startDate)}</span>
+              <span><i class="bi bi-hash"></i> ${emp.employeeNumber}</span>
+            </div>
+          </div>
+          <div class="profile-header-actions">
+            ${canEdit ? `<button class="btn btn-sm btn-primary" id="editEmployeeBtn"><i class="bi bi-pencil"></i> Edit Employee</button>` : ""}
+            <button class="btn btn-sm btn-light-custom" id="uploadDocBtn"><i class="bi bi-cloud-upload"></i> Upload Document</button>
+            <a class="btn btn-sm btn-light-custom" href="attendance.html?tab=absence&employee=${emp.id}&new=1"><i class="bi bi-clipboard-x"></i> Record Absence</a>
+            <button class="btn btn-sm btn-light-custom" id="requestReviewBtn"><i class="bi bi-flag"></i> Request Review</button>
+            <div class="dropdown d-inline-block">
+              <button class="btn btn-sm btn-ghost dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i> More</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><button class="dropdown-item" id="confirmContactBtn"><i class="bi bi-patch-check me-2"></i>Confirm Contact Details</button></li>
+                <li><a class="dropdown-item" href="#" onclick="window.print(); return false;"><i class="bi bi-printer me-2"></i>Generate Employee HR File</a></li>
+                ${canEdit ? `<li><hr class="dropdown-divider"></li><li><button class="dropdown-item text-danger" id="deactivateBtn"><i class="bi bi-person-dash me-2"></i>Deactivate Employee</button></li>` : ""}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <ul class="nav profile-tabs" id="profileTabs">
+          <li class="nav-item"><button class="nav-link active" data-tab="overview">Overview</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="employment">Employment</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="attendance">Attendance</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="leave">Leave</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="documents">Documents</button></li>
+          ${canViewImmigration ? `<li class="nav-item"><button class="nav-link" data-tab="rtw">Right to Work</button></li>` : ""}
+          ${canViewImmigration ? `<li class="nav-item"><button class="nav-link" data-tab="sponsorship">Sponsorship</button></li>` : ""}
+          ${canViewSalary ? `<li class="nav-item"><button class="nav-link" data-tab="salary">Salary</button></li>` : ""}
+          <li class="nav-item"><button class="nav-link" data-tab="notes">Notes</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="history">History</button></li>
+        </ul>
+        <div id="tabPanels"></div>`;
+    }
+
+    function tabOverview() {
+      const events = HR.compliance.getCalendarEvents().filter((e) => e.label.includes(HR.employees.fullName(emp)) || e.label.includes(emp.lastName));
+      const actions = HR.compliance.getActionCentreItems().filter((a) => a.employeeId === emp.id);
+      const history = HR.audit.forEmployee(emp.id).slice(0, 5);
+      return `
+        <div class="dashboard-columns">
+          <div>
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">Personal Details</div></div>
+              <div class="detail-grid">
+                <div class="detail-item"><dt>Full name</dt><dd>${HR.employees.fullName(emp)}</dd></div>
+                <div class="detail-item"><dt>Preferred name</dt><dd>${emp.preferredName || "—"}</dd></div>
+                <div class="detail-item"><dt>Date of birth</dt><dd>${fmt.date(emp.dob)}</dd></div>
+                <div class="detail-item"><dt>Nationality</dt><dd>${emp.nationality}</dd></div>
+              </div>
+            </div>
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">Contact Details</div>
+                <span class="text-meta">Last verified ${fmt.date(emp.contactVerifiedDate)} by ${emp.contactVerifiedBy || "—"}</span>
+              </div>
+              <div class="detail-grid">
+                <div class="detail-item"><dt>Home address</dt><dd>${emp.address}, ${emp.postcode}</dd></div>
+                <div class="detail-item"><dt>Mobile</dt><dd>${emp.mobile}</dd></div>
+                <div class="detail-item"><dt>Personal email</dt><dd>${emp.personalEmail || "—"}</dd></div>
+                <div class="detail-item"><dt>Company email</dt><dd>${emp.companyEmail}</dd></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Emergency Contact</div></div>
+              <div class="detail-grid">
+                <div class="detail-item"><dt>Name</dt><dd>${emp.emergencyContact}</dd></div>
+                <div class="detail-item"><dt>Relationship</dt><dd>${emp.emergencyRelationship || "—"}</dd></div>
+                <div class="detail-item"><dt>Phone</dt><dd>${emp.emergencyPhone}</dd></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">Required Actions</div></div>
+              ${actions.length ? actions.map((a) => `<div class="action-item"><span class="action-priority-dot priority-dot-${a.priority.toLowerCase()}"></span><div class="action-body"><div class="action-title">${fmt.escapeHtml(a.issue)}</div><div class="action-meta">${a.dueDate ? "Due " + fmt.date(a.dueDate) : ""}</div></div></div>`).join("") : `<p class="text-secondary-custom small mb-0">No outstanding actions for this employee.</p>`}
+            </div>
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">Upcoming Events</div></div>
+              ${events.length ? events.map((e) => `<div class="d-flex justify-content-between py-2 border-bottom small"><span>${fmt.escapeHtml(e.type)}</span><span class="text-meta">${fmt.date(e.date)}</span></div>`).join("") : `<p class="text-secondary-custom small mb-0">No upcoming compliance events.</p>`}
+            </div>
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Recent Activity</div></div>
+              ${history.length ? `<div class="timeline">` + history.map((ev) => `<div class="timeline-item"><div class="timeline-date">${fmt.date(ev.timestamp)}</div><div class="timeline-title">${fmt.escapeHtml(ev.action)}</div><div class="timeline-by">by ${fmt.escapeHtml(ev.userName || "System")}</div></div>`).join("") + `</div>` : `<p class="text-secondary-custom small mb-0">No recorded activity yet.</p>`}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function tabEmployment() {
+      const pattern = emp.workingPattern || {};
+      const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+      return `
+        <div class="panel mb-4">
+          <div class="panel-header"><div class="panel-title">Employment Summary</div></div>
+          <div class="detail-grid">
+            <div class="detail-item"><dt>Job title</dt><dd>${emp.jobTitle}</dd></div>
+            <div class="detail-item"><dt>Department</dt><dd>${HR.employees.departmentName(emp.departmentId)}</dd></div>
+            <div class="detail-item"><dt>Manager</dt><dd>${HR.employees.managerName(emp.managerId)}</dd></div>
+            <div class="detail-item"><dt>Employment type</dt><dd>${emp.employmentType}</dd></div>
+            <div class="detail-item"><dt>Work location</dt><dd>${HR.employees.locationName(emp.workLocationId)}</dd></div>
+            <div class="detail-item"><dt>Working arrangement</dt><dd>${emp.workArrangement}</dd></div>
+            <div class="detail-item"><dt>Weekly contracted hours</dt><dd>${emp.weeklyHours}</dd></div>
+            <div class="detail-item"><dt>Start date</dt><dd>${fmt.date(emp.startDate)}</dd></div>
+            <div class="detail-item"><dt>Probation end date</dt><dd>${emp.probationEndDate ? fmt.date(emp.probationEndDate) : "N/A"}</dd></div>
+            <div class="detail-item"><dt>End date</dt><dd>${emp.endDate ? fmt.date(emp.endDate) : "N/A (ongoing)"}</dd></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title">Working Pattern</div></div>
+          <table class="table-app" id="workingPatternTable" style="width:100%;">
+            <thead><tr>${days.map((d) => `<th>${d.slice(0,3).toUpperCase()}</th>`).join("")}</tr></thead>
+            <tbody></tbody>
+          </table>
+          <p class="text-meta mt-3 mb-0">Break: ${pattern.breakMinutes || 0} minutes daily.</p>
+        </div>`;
+    }
+    function wireEmployment() {
+      const pattern = emp.workingPattern || {};
+      const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+      HR.ui.initDataTable("#workingPatternTable", {
+        data: [pattern],
+        paging: false, info: false, searching: false, ordering: false,
+        columns: days.map((d) => ({ data: null, render: () => pattern[d] || "—" }))
+      });
+    }
+
+    function tabAttendance() {
+      return `<div class="table-panel">
+        <table class="table-app" id="profileAttendanceTable" style="width:100%;">
+          <thead><tr><th>Date</th><th>Expected Start</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Location</th><th>Status</th><th>Reviewed</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+    function wireAttendance() {
+      HR.ui.initDataTable("#profileAttendanceTable", {
+        data: db.attendance.find((a) => a.employeeId === emp.id),
+        paging: false, info: false,
+        order: [[0, "desc"]],
+        emptyIcon: "bi-calendar-check",
+        emptyTitle: "No attendance recorded",
+        emptyText: "Attendance records will appear here once logged.",
+        columns: [
+          { data: "date", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "expectedStart" },
+          { data: "clockIn", render: (row) => row || "—" },
+          { data: "clockOut", render: (row) => row || "—" },
+          { data: "hours" },
+          { data: "workLocation" },
+          { data: "status", render: (row) => fmt.statusBadge(row) },
+          { data: "managerReviewed", render: (row) => row ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-clock text-warning"></i>' }
+        ]
+      });
+    }
+
+    function tabLeave() {
+      const remaining = emp.leaveAllowance - emp.leaveTakenDays - emp.leaveBookedDays;
+      return `
+        <div class="kpi-grid mb-4">
+          ${["Allowance|" + emp.leaveAllowance, "Taken|" + emp.leaveTakenDays, "Booked|" + emp.leaveBookedDays, "Remaining|" + remaining].map((s) => {
+            const [label, val] = s.split("|");
+            return `<div class="metric-card metric-accent-info"><span class="metric-label">${label}</span><span class="metric-value">${val}</span></div>`;
+          }).join("")}
+        </div>
+        <div class="table-panel">
+          <table class="table-app" id="profileLeaveTable" style="width:100%;">
+            <thead><tr><th>Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Approved By</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>`;
+    }
+    function wireLeave() {
+      HR.ui.initDataTable("#profileLeaveTable", {
+        data: db.leaveRequests.find((l) => l.employeeId === emp.id),
+        paging: false, info: false,
+        order: [[1, "desc"]],
+        emptyIcon: "bi-airplane",
+        emptyTitle: "No leave requests",
+        emptyText: "This employee has not submitted any leave requests.",
+        columns: [
+          { data: "leaveType" },
+          { data: "from", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "to", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "reason", render: (row) => row || "—" },
+          { data: "status", render: (row) => fmt.statusBadge(row) },
+          { data: "approvedBy", render: (row) => row || "—" }
+        ]
+      });
+    }
+
+    function tabDocuments() {
+      const rows = db.documents.find((d) => d.employeeId === emp.id);
+      return `<div class="row g-3">${rows.length ? rows.map((d) => `
+        <div class="col-md-6">
+          <div class="panel d-flex gap-3">
+            <span class="doc-icon"><i class="bi bi-file-earmark-text"></i></span>
+            <div class="flex-grow-1">
+              <div class="fw-medium">${d.title}</div>
+              <div class="text-meta mb-2">${d.category} · Uploaded ${fmt.date(d.uploadDate)} by ${d.uploadedBy}</div>
+              ${fmt.statusBadge(HR.compliance.documentStatus(d))}
+              <span class="data-classification-tag classification-${d.accessClassification.toLowerCase().replace(/ /g, "-")} ms-1">${d.accessClassification}</span>
+              ${d.expiryDate ? `<div class="text-meta mt-2">Expires ${fmt.date(d.expiryDate)}</div>` : ""}
+            </div>
+          </div>
+        </div>`).join("") : `<div class="col-12">
+          <div class="empty-state"><div class="empty-state-icon"><i class="bi bi-folder2-open"></i></div><div class="empty-state-title">No documents on file</div><div class="empty-state-text">Upload employment, right-to-work or qualification documents for this employee.</div></div>
+        </div>`}</div>`;
+    }
+
+    function tabRtw() {
+      return `<div class="table-panel">
+        <table class="table-app" id="profileRtwTable" style="width:100%;">
+          <thead><tr><th>Check Date</th><th>Method</th><th>Immigration Category</th><th>Permission Start</th><th>Permission Expiry</th><th>Follow-up</th><th>Status</th><th>Performed By</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="p-4 border-top"><a href="right-to-work.html?employee=${emp.id}&new=1" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i> Record New Check</a></div>
+      </div>`;
+    }
+    function wireRtw() {
+      HR.ui.initDataTable("#profileRtwTable", {
+        data: db.rightToWorkChecks.find((c) => c.employeeId === emp.id),
+        paging: false, info: false,
+        order: [[0, "desc"]],
+        emptyIcon: "bi-patch-check",
+        emptyTitle: "No right-to-work check on file",
+        emptyText: "A right-to-work check has not yet been recorded for this employee.",
+        columns: [
+          { data: "checkDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "checkMethod" },
+          { data: "immigrationCategory" },
+          { data: "permissionStart", render: (row) => row ? fmt.date(row) : "N/A" },
+          { data: "permissionExpiry", render: (row) => row ? fmt.date(row) : "N/A" },
+          { data: null, render: (row) => row.followUpRequired ? "Yes " + fmt.date(row.nextCheckDate) : "No" },
+          { data: null, render: (row) => fmt.statusBadge(HR.compliance.rtwStatus(row)) },
+          { data: "performedBy" }
+        ]
+      });
+    }
+
+    function tabSponsorship() {
+      const rec = db.sponsorshipRecords.find((s) => s.employeeId === emp.id)[0];
+      if (!emp.sponsored || !rec) {
+        return `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-shield"></i></div><div class="empty-state-title">Not a sponsored worker</div><div class="empty-state-text">This employee does not currently hold a sponsored worker record.</div><a href="sponsorship.html" class="btn btn-outline-primary btn-sm">Open Sponsor Compliance Workspace</a></div></div>`;
+      }
+      return `<div class="panel">
+        <div class="panel-header"><div class="panel-title">Sponsorship Record</div>${fmt.statusBadge(rec.sponsorshipStatus)}</div>
+        <div class="detail-grid">
+          <div class="detail-item"><dt>Worker route</dt><dd>${rec.workerRoute}</dd></div>
+          <div class="detail-item"><dt>CoS reference</dt><dd>${rec.cosReference}</dd></div>
+          <div class="detail-item"><dt>CoS assigned</dt><dd>${fmt.date(rec.cosAssignedDate)}</dd></div>
+          <div class="detail-item"><dt>CoS start / end</dt><dd>${fmt.date(rec.cosStartDate)} – ${fmt.date(rec.cosEndDate)}</dd></div>
+          <div class="detail-item"><dt>SOC code</dt><dd>${rec.socCode} ${rec.socTitle}</dd></div>
+          <div class="detail-item"><dt>Annual salary</dt><dd>${fmt.currency(rec.annualSalary)}</dd></div>
+          <div class="detail-item"><dt>Weekly hours</dt><dd>${rec.weeklyHours}</dd></div>
+          <div class="detail-item"><dt>Work pattern</dt><dd>${rec.workPattern}</dd></div>
+          <div class="detail-item"><dt>HR responsible person</dt><dd>${rec.hrResponsiblePerson}</dd></div>
+          <div class="detail-item"><dt>Next review date</dt><dd>${fmt.date(rec.nextReviewDate)}</dd></div>
+        </div>
+        <p class="text-meta mt-3 mb-0">${rec.notes || ""}</p>
+        <div class="mt-3"><a href="sponsorship.html" class="btn btn-sm btn-outline-primary">Open Sponsor Compliance Workspace</a></div>
+      </div>`;
+    }
+
+    function tabSalary() {
+      const rows = db.salaryRecords.find((s) => s.employeeId === emp.id).sort((a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate));
+      const current = rows[0];
+      return `
+        <div class="panel mb-4">
+          <div class="panel-header"><div class="panel-title">Current Salary</div></div>
+          <div class="detail-grid">
+            <div class="detail-item"><dt>Salary</dt><dd>${fmt.currency(current.salary)} (${current.basis})</dd></div>
+            <div class="detail-item"><dt>Contracted hours</dt><dd>${current.contractedHours}/week</dd></div>
+            <div class="detail-item"><dt>Effective from</dt><dd>${fmt.date(current.effectiveDate)}</dd></div>
+            <div class="detail-item"><dt>Approved by</dt><dd>${current.approvedBy}</dd></div>
+          </div>
+        </div>
+        <div class="table-panel">
+          <div class="panel-header px-4 pt-4"><div class="panel-title">Salary History</div></div>
+          <table class="table-app" id="profileSalaryTable" style="width:100%;">
+            <thead><tr><th>Effective Date</th><th>Previous</th><th>New</th><th>Reason</th><th>Approved By</th><th>Recorded By</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>`;
+    }
+    function wireSalary() {
+      HR.ui.initDataTable("#profileSalaryTable", {
+        data: db.salaryRecords.find((s) => s.employeeId === emp.id),
+        paging: false, info: false,
+        order: [[0, "desc"]],
+        columns: [
+          { data: "effectiveDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "previousSalary", render: (row) => row ? fmt.currency(row) : "—" },
+          { data: "salary", className: "cell-primary", render: (row, type) => type === "display" ? fmt.currency(row) : row },
+          { data: "reason" },
+          { data: "approvedBy" },
+          { data: "recordedBy" }
+        ]
+      });
+    }
+
+    function tabNotes() {
+      return `<div class="panel">
+        <div class="panel-header"><div class="panel-title">Policy Acknowledgements</div></div>
+        <table class="table-app" id="profileNotesTable" style="width:100%;">
+          <thead><tr><th>Policy</th><th>Version</th><th>Issued</th><th>Acknowledged</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+    function wireNotes() {
+      HR.ui.initDataTable("#profileNotesTable", {
+        data: db.policyAcknowledgements.find((a) => a.employeeId === emp.id),
+        paging: false, info: false,
+        order: [[2, "desc"]],
+        emptyIcon: "bi-clipboard-check",
+        emptyTitle: "No policies assigned",
+        emptyText: "Policy acknowledgements will appear here once issued.",
+        columns: [
+          { data: null, render: (row) => { const p = db.policies.get(row.policyId); return p ? p.name : "—"; } },
+          { data: "policyVersion" },
+          { data: "issuedDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "acknowledgedDate", render: (row) => row ? fmt.date(row) : "—" },
+          { data: "status", render: (row) => fmt.statusBadge(row) }
+        ]
+      });
+    }
+
+    function tabHistory() {
+      return `<div class="table-panel">
+        <table class="table-app" id="profileHistoryTable" style="width:100%;">
+          <thead><tr><th>Date &amp; Time</th><th>Action</th><th>Previous Value</th><th>New Value</th><th>Changed By</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+    function wireHistory() {
+      HR.ui.initDataTable("#profileHistoryTable", {
+        data: HR.audit.forEmployee(emp.id),
+        order: [[0, "desc"]],
+        emptyIcon: "bi-journal-text",
+        emptyTitle: "No change history yet",
+        emptyText: "Changes to this employee's record will be logged here automatically.",
+        columns: [
+          { data: "timestamp", render: (row, type) => type === "display" ? fmt.date(row, { withTime: true }) : row },
+          { data: null, render: (row) => row.action + (row.description ? `<div class="text-meta">${row.description}</div>` : "") },
+          { data: "previousValue", render: (row) => row || "—" },
+          { data: "newValue", render: (row) => row || "—" },
+          { data: "userName", render: (row) => row || "System" }
+        ]
+      });
+    }
+
+    const TAB_RENDERERS = { overview: tabOverview, employment: tabEmployment, attendance: tabAttendance, leave: tabLeave, documents: tabDocuments, rtw: tabRtw, sponsorship: tabSponsorship, salary: tabSalary, notes: tabNotes, history: tabHistory };
+    const TAB_WIRERS = { employment: wireEmployment, attendance: wireAttendance, leave: wireLeave, rtw: wireRtw, salary: wireSalary, notes: wireNotes, history: wireHistory };
+
+    function activateTab(tab) {
+      document.querySelectorAll("#profileTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("tabPanels").innerHTML = (TAB_RENDERERS[tab] || tabOverview)();
+      if (TAB_WIRERS[tab]) TAB_WIRERS[tab]();
+    }
+
+    function wireActions() {
+      document.querySelectorAll("#profileTabs .nav-link").forEach((b) => b.addEventListener("click", () => activateTab(b.dataset.tab)));
+
+      const editModalEl = document.getElementById("editEmployeeModal");
+      const editModal = new bootstrap.Modal(editModalEl);
+      if (document.getElementById("editEmployeeBtn")) {
+        document.getElementById("editDepartmentId").innerHTML = db.departments.all().map((d) => `<option value="${d.id}">${d.name}</option>`).join("");
+        document.getElementById("editManagerId").innerHTML += db.employees.find((e) => e.id !== emp.id).map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+        document.getElementById("editEmploymentType").innerHTML = HR.enums.EMPLOYMENT_TYPES.map((t) => `<option>${t}</option>`).join("");
+        document.getElementById("editWorkLocationId").innerHTML = db.workLocations.all().map((l) => `<option value="${l.id}">${l.name}</option>`).join("");
+        document.getElementById("editWorkArrangement").innerHTML = HR.enums.WORK_ARRANGEMENTS.map((w) => `<option>${w}</option>`).join("");
+        document.getElementById("editStatus").innerHTML = HR.enums.EMPLOYMENT_STATUSES.map((s) => `<option>${s}</option>`).join("");
+
+        document.getElementById("editEmployeeBtn").addEventListener("click", () => {
+          const form = document.getElementById("editEmployeeForm");
+          form.elements["jobTitle"].value = emp.jobTitle;
+          form.elements["departmentId"].value = emp.departmentId;
+          form.elements["managerId"].value = emp.managerId || "";
+          form.elements["employmentType"].value = emp.employmentType;
+          form.elements["workLocationId"].value = emp.workLocationId;
+          form.elements["workArrangement"].value = emp.workArrangement;
+          form.elements["weeklyHours"].value = emp.weeklyHours;
+          form.elements["status"].value = emp.status;
+          form.elements["reason"].value = "";
+          editModal.show();
+        });
+        document.getElementById("editEmployeeForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          const data = Object.fromEntries(fd.entries());
+          const fieldsToTrack = [
+            ["jobTitle", "Job title"], ["departmentId", "Department"], ["managerId", "Manager"],
+            ["employmentType", "Employment type"], ["workLocationId", "Work location"],
+            ["workArrangement", "Work arrangement"], ["weeklyHours", "Weekly hours"], ["status", "Employment status"]
+          ];
+          fieldsToTrack.forEach(([field, label]) => {
+            if (String(emp[field] || "") !== String(data[field] || "")) {
+              const prevLabel = field === "departmentId" ? HR.employees.departmentName(emp[field]) : field === "managerId" ? HR.employees.managerName(emp[field]) : emp[field];
+              const newLabel = field === "departmentId" ? HR.employees.departmentName(data[field]) : field === "managerId" ? HR.employees.managerName(data[field]) : data[field];
+              HR.employees.recordFieldChange(emp.id, label, prevLabel || "—", newLabel || "—", data.reason);
+            }
+          });
+          db.employees.update(emp.id, {
+            jobTitle: data.jobTitle, departmentId: data.departmentId, managerId: data.managerId || null,
+            employmentType: data.employmentType, workLocationId: data.workLocationId, workArrangement: data.workArrangement,
+            weeklyHours: Number(data.weeklyHours), status: data.status
+          });
+          editModal.hide();
+          HR.ui.toastSuccess("Employee updated", "Changes have been saved and recorded in the change history.");
+          window.location.reload();
+        });
+      }
+
+      document.getElementById("docCategorySelect").innerHTML = HR.enums.DOCUMENT_CATEGORIES.map((c) => `<option>${c}</option>`).join("");
+      document.getElementById("docClassificationSelect").innerHTML = HR.enums.DATA_CLASSIFICATIONS.map((c) => `<option>${c}</option>`).join("");
+      const uploadModal = new bootstrap.Modal(document.getElementById("uploadDocModal"));
+      document.getElementById("uploadDocBtn").addEventListener("click", () => uploadModal.show());
+      document.getElementById("uploadDocForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        if (!data.title.trim()) { HR.ui.toastError("Title required", "Enter a document title."); return; }
+        db.documents.create({
+          employeeId: emp.id, title: data.title, category: data.category, issueDate: data.issueDate || null,
+          expiryDate: data.expiryDate || null, uploadedBy: user.name, uploadDate: HR.util.nowISO().slice(0, 10),
+          reviewDate: null, status: "Valid", notes: data.notes, version: 1, accessClassification: data.accessClassification
+        });
+        HR.audit.log({ employeeId: emp.id, action: "Document uploaded", module: "Documents", description: `${data.title} uploaded.` });
+        uploadModal.hide();
+        e.target.reset();
+        HR.ui.toastSuccess("Document saved", `${data.title} has been added to the employee record.`);
+        activateTab("documents");
+        document.querySelector('[data-tab="documents"]').click();
+      });
+
+      document.getElementById("requestReviewBtn").addEventListener("click", () => {
+        db.tasks.create({ title: `Review requested ${HR.employees.fullName(emp)}`, description: "Manual review requested from employee profile.", employeeId: emp.id, category: "General", assignedTo: "HR Administrator", priority: "Medium", dueDate: HR.util.daysFromNow(7), status: "Open", attachments: [], comments: [] });
+        HR.audit.log({ employeeId: emp.id, action: "Review requested", module: "Employees", description: `A review was requested for ${HR.employees.fullName(emp)}.` });
+        HR.ui.toastSuccess("Review requested", "An HR task has been created.");
+      });
+
+      document.getElementById("confirmContactBtn").addEventListener("click", async () => {
+        const ok = await HR.ui.confirmAction({ title: "Confirm Contact Details", body: `Confirm that ${HR.employees.fullName(emp)}'s contact details are current?`, confirmLabel: "Confirm", confirmVariant: "primary" });
+        if (!ok) return;
+        db.employees.update(emp.id, { contactVerifiedDate: HR.util.nowISO().slice(0, 10), contactVerifiedBy: user.name });
+        HR.audit.log({ employeeId: emp.id, action: "Contact details confirmed", module: "Contact Details", description: `Contact details confirmed by ${user.name}.` });
+        HR.ui.toastSuccess("Contact details confirmed", "The verification date has been updated.");
+        window.location.reload();
+      });
+
+      const deactivateBtn = document.getElementById("deactivateBtn");
+      if (deactivateBtn) {
+        deactivateBtn.addEventListener("click", async () => {
+          const ok = await HR.ui.confirmAction({ title: "Deactivate Employee", body: `Are you sure you want to deactivate ${HR.employees.fullName(emp)}? Their record will be retained but marked as inactive.`, confirmLabel: "Deactivate", confirmVariant: "danger" });
+          if (!ok) return;
+          HR.employees.recordFieldChange(emp.id, "Employment status", emp.status, "Inactive", "Employee deactivated");
+          db.employees.update(emp.id, { status: "Inactive" });
+          HR.ui.toastSuccess("Employee deactivated", `${HR.employees.fullName(emp)} has been marked inactive.`);
+          window.location.reload();
+        });
+      }
+    }
+
+    renderShell();
+    activateTab(params.get("tab") || "overview");
+    wireActions();
+  });
+  </script>
+</body>
+</html>

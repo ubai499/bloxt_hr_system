@@ -1,0 +1,107 @@
+@use "../abstracts/variables" as v;
+@use "../abstracts/mixins" as m;
+
+.greeting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: v.$space-3;
+}
+
+.compliance-calendar-mini {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+
+  .cal-cell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: v.$color-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: v.$fs-meta;
+    color: v.$color-text-secondary;
+    position: relative;
+
+    &.has-event::after {
+      content: "";
+      position: absolute;
+      bottom: 4px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: v.$color-warning;
+    }
+
+    &.is-today {
+      background: v.$color-secondary;
+      color: #fff;
+      font-weight: v.$fw-semibold;
+    }
+  }
+}
+
+.chart-wrap {
+  position: relative;
+  height: 240px;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: v.$color-primary;
+  background-image: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.05), transparent 40%),
+                     radial-gradient(circle at 85% 85%, rgba(182,178,71,0.14), transparent 45%);
+  padding: v.$space-4;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: v.$color-surface;
+  border-radius: v.$radius-xl;
+  box-shadow: v.$shadow-lg;
+  padding: v.$space-7 v.$space-6;
+
+  @include m.respond-down(sm) {
+    padding: v.$space-6 v.$space-4;
+  }
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: v.$space-3;
+  margin-bottom: v.$space-6;
+  text-align: center;
+
+  .login-brand-logo {
+    height: 34px;
+    width: auto;
+  }
+
+  p { color: v.$color-text-secondary; font-size: v.$fs-body; margin: 0; }
+}
+
+.login-footer-note {
+  text-align: center;
+  color: v.$color-text-secondary;
+  font-size: v.$fs-meta;
+  margin-top: v.$space-6;
+}
+
+.demo-credentials-box {
+  background: v.$color-bg;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  padding: v.$space-3 v.$space-4;
+  font-size: v.$fs-meta;
+  margin-top: v.$space-4;
+
+  strong { color: v.$color-text; }
+}

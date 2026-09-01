@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Reports, HR tasks and notifications for Bloxt.">
+  <title>Reports Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="print-header">
+    <h2>Bloxt Report</h2>
+    <p id="printMeta"></p>
+  </div>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">Generate, filter and export reports across all HR modules.</p>
+        <ul class="nav profile-tabs mt-4" id="reportsTabs">
+          <li class="nav-item"><button class="nav-link active" data-tab="catalogue">Report Catalogue</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="tasks">HR Tasks</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="notifications">Notifications</button></li>
+        </ul>
+      </div>
+      <div class="app-content" id="reportsContent"></div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="taskForm">
+          <div class="modal-header"><h2 class="modal-title h5">Create HR Task</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-field mb-3"><label class="form-label">Title<span class="required-indicator">*</span></label><input class="form-control" name="title" required></div>
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Employee</label><select class="form-select" name="employeeId" id="taskEmployeeSelect"><option value="">Not employee-specific</option></select></div>
+              <div class="form-field"><label class="form-label">Category</label><input class="form-control" name="category" placeholder="e.g. Documents, Right to Work"></div>
+              <div class="form-field"><label class="form-label">Assigned to</label><input class="form-control" name="assignedTo" value="Sarah Whitfield"></div>
+              <div class="form-field"><label class="form-label">Priority</label><select class="form-select" name="priority" id="taskPrioritySelect"></select></div>
+              <div class="form-field"><label class="form-label">Due date</label><input type="date" class="form-control" name="dueDate"></div>
+              <div class="form-field"><label class="form-label">Status</label><select class="form-select" name="status" id="taskStatusSelect"></select></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Task</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script src="assets/js/reports.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "reports" });
+    if (!user) return;
+    if (!HR.auth.can("VIEW_REPORTS")) {
+      document.getElementById("reportsContent").innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-lock"></i></div><div class="empty-state-title">Access denied</div><div class="empty-state-text">Your role does not have permission to view reports.</div></div></div>`;
+      document.getElementById("reportsTabs").remove();
+      return;
+    }
+    const db = HR.db, fmt = HR.format;
+    const params = new URLSearchParams(window.location.search);
+
+    function tabCatalogue() {
+      return `<div class="row g-3 mb-4" id="reportCards">${HR.reports.catalogue.map((r) => `
+        <div class="col-md-4 col-lg-3">
+          <button class="panel text-start w-100 h-100 border-0" data-report="${r.id}" style="cursor:pointer;">
+            <i class="bi ${r.icon}" style="font-size:1.3rem;color:#6B6B24;"></i>
+            <div class="fw-semibold mt-2">${r.title}</div>
+            <div class="text-meta">${r.description}</div>
+          </button>
+        </div>`).join("")}</div>
+      <div id="reportOutput"></div>`;
+    }
+
+    function renderReport(id) {
+      const report = HR.reports.catalogue.find((r) => r.id === id);
+      const rows = report.rows();
+      document.getElementById("printMeta").textContent = `${report.title} generated ${fmt.date(new Date().toISOString(), { withTime: true })} by ${user.name}`;
+      document.getElementById("reportOutput").innerHTML = `
+        <div class="table-panel">
+          <div class="table-toolbar">
+            <div><span class="fw-semibold">${report.title}</span><div class="text-meta">${rows.length} record(s)</div></div>
+            <div class="table-toolbar-actions">
+              <button class="btn btn-sm btn-light-custom" id="printReportBtn"><i class="bi bi-printer"></i> Print</button>
+              <button class="btn btn-sm btn-light-custom" id="exportReportBtn"><i class="bi bi-download"></i> Export CSV</button>
+            </div>
+          </div>
+          <table class="table-app" id="dynamicReportTable" style="width:100%;">
+            <thead><tr>${report.columns.map((c) => `<th>${c}</th>`).join("")}</tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>`;
+      const reportTable = HR.ui.initDataTable("#dynamicReportTable", {
+        data: rows,
+        emptyIcon: "bi-bar-chart",
+        emptyTitle: "No records for this report",
+        emptyText: "There is currently no data matching this report."
+      });
+      document.getElementById("exportReportBtn").addEventListener("click", () => {
+        const filtered = reportTable.rows({ search: "applied" }).data().toArray();
+        HR.ui.exportCsv(`${id}.csv`, report.columns, filtered);
+      });
+      document.getElementById("printReportBtn").addEventListener("click", () => HR.ui.printPage());
+      document.getElementById("reportOutput").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function tabTasks() {
+      return `<div class="table-panel">
+        <div class="table-toolbar">
+          <div class="table-toolbar-filters">
+            <select class="form-select form-select-sm" id="taskStatusFilter" style="width:auto;"><option value="all">All statuses</option></select>
+          </div>
+          <div class="table-toolbar-actions"><button class="btn btn-sm btn-primary" id="newTaskBtn"><i class="bi bi-plus-lg"></i> Create Task</button></div>
+        </div>
+        <table class="table-app" id="tasksTable" style="width:100%;">
+          <thead><tr><th>Title</th><th>Employee</th><th>Category</th><th>Assigned To</th><th>Priority</th><th>Due Date</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+
+    function tabNotifications() {
+      return `<div class="table-panel">
+        <div class="table-toolbar"><div><span class="fw-semibold">Notification centre</span></div></div>
+        <table class="table-app" id="notificationsTable" style="width:100%;">
+          <thead><tr><th>Title</th><th>Body</th><th>Created</th><th>Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+
+    const RENDERERS = { catalogue: tabCatalogue, tasks: tabTasks, notifications: tabNotifications };
+    function activate(tab) {
+      document.querySelectorAll("#reportsTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("reportsContent").innerHTML = RENDERERS[tab]();
+      if (tab === "catalogue") wireCatalogue();
+      if (tab === "tasks") wireTasks();
+      if (tab === "notifications") wireNotifications();
+    }
+    document.querySelectorAll("#reportsTabs .nav-link").forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
+
+    function wireCatalogue() {
+      document.querySelectorAll("[data-report]").forEach((btn) => btn.addEventListener("click", () => renderReport(btn.dataset.report)));
+    }
+
+    function wireTasks() {
+      document.getElementById("taskEmployeeSelect").innerHTML += db.employees.all().map((e) => `<option value="${e.id}">${HR.employees.fullName(e)}</option>`).join("");
+      document.getElementById("taskPrioritySelect").innerHTML = HR.enums.TASK_PRIORITIES.map((p) => `<option>${p}</option>`).join("");
+      document.getElementById("taskStatusSelect").innerHTML = HR.enums.TASK_STATUSES.map((s) => `<option>${s}</option>`).join("");
+      document.getElementById("taskStatusFilter").innerHTML += HR.enums.TASK_STATUSES.map((s) => `<option>${s}</option>`).join("");
+
+      const tasksTable = HR.ui.initDataTable("#tasksTable", {
+        data: db.tasks.all(),
+        order: [[5, "asc"]],
+        emptyIcon: "bi-list-task",
+        emptyTitle: "No HR tasks",
+        emptyText: "Tasks created for HR follow-up will appear here.",
+        columns: [
+          { data: "title", className: "cell-primary" },
+          { data: null, render: (row) => row.employeeId ? HR.employees.fullName(db.employees.get(row.employeeId)) : "—" },
+          { data: "category" },
+          { data: "assignedTo" },
+          { data: "priority", render: (row) => fmt.statusBadge(row) },
+          { data: "dueDate", render: (row, type) => row ? (type === "display" ? fmt.date(row) : row) : (type === "display" ? "—" : "9999-99-99") },
+          { data: "id", orderable: false, render: (row) => `<select class="form-select form-select-sm task-status-select" data-id="${row}" style="width:auto;">${HR.enums.TASK_STATUSES.map((s) => `<option ${s === db.tasks.get(row).status ? "selected" : ""}>${s}</option>`).join("")}</select>` }
+        ],
+        createdRow: (trEl, row) => { if (params.get("highlight") === row.id) trEl.classList.add("table-active"); }
+      });
+
+      const taskFilters = HR.ui.createFilterState(tasksTable, "tasksTable");
+      document.getElementById("taskStatusFilter").addEventListener("change", (e) => taskFilters.set("status", e.target.value === "all" ? null : (row) => row.status === e.target.value));
+      document.querySelector("#tasksTable tbody").addEventListener("change", (e) => {
+        const sel = e.target.closest(".task-status-select");
+        if (!sel) return;
+        db.tasks.update(sel.dataset.id, { status: sel.value });
+        HR.ui.toastSuccess("Task updated", "Status changed to " + sel.value + ".");
+      });
+
+      const modal = new bootstrap.Modal(document.getElementById("taskModal"));
+      document.getElementById("newTaskBtn").addEventListener("click", () => { document.getElementById("taskForm").reset(); modal.show(); });
+      if (params.get("new") === "1" && params.get("tab") === "tasks") modal.show();
+      document.getElementById("taskForm").onsubmit = (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        db.tasks.create({ title: data.title, description: data.description, employeeId: data.employeeId || null, category: data.category || "General", assignedTo: data.assignedTo, priority: data.priority, dueDate: data.dueDate || null, status: data.status, attachments: [], comments: [] });
+        HR.audit.log({ employeeId: data.employeeId || null, action: "HR task created", module: "Tasks", description: `${data.title} created.` });
+        modal.hide();
+        HR.ui.toastSuccess("Task created", "The HR task has been added.");
+        activate("tasks");
+      };
+    }
+
+    function wireNotifications() {
+      const items = HR.notifications.forUser(user);
+      const notifTable = HR.ui.initDataTable("#notificationsTable", {
+        data: items,
+        order: [[2, "desc"]],
+        emptyIcon: "bi-bell",
+        emptyTitle: "No notifications",
+        emptyText: "You have no notifications right now.",
+        columns: [
+          { data: "title", className: "cell-primary" },
+          { data: "body", className: "cell-secondary", render: (row) => row || "" },
+          { data: "createdAt", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "status", render: (row) => fmt.statusBadge(row) },
+          { data: "id", orderable: false, className: "text-end", render: (row) => db.notifications.get(row).status !== "Resolved" ? `<button class="btn btn-sm btn-light-custom" data-resolve="${row}">Mark Resolved</button>` : "" }
+        ]
+      });
+      document.querySelector("#notificationsTable tbody").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-resolve]");
+        if (!btn) return;
+        HR.notifications.markResolved(btn.dataset.resolve);
+        HR.ui.toastSuccess("Notification resolved", "");
+        activate("notifications");
+      });
+    }
+
+    activate(params.get("tab") || "catalogue");
+  });
+  </script>
+</body>
+</html>

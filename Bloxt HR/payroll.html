@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Salary and payroll records for Bloxt.">
+  <title>Payroll Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <h1 class="page-title">Payroll</h1>
+        <p class="page-subtitle">Salary records and payroll evidence.</p>
+        <ul class="nav profile-tabs mt-4" id="payrollTabs">
+          <li class="nav-item"><button class="nav-link active" data-tab="salary">Salary Records</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="payroll">Payroll Records</button></li>
+        </ul>
+      </div>
+      <div class="app-content">
+        <section id="tab-salary">
+          <div class="disclaimer-note mb-4"><i class="bi bi-info-circle"></i><span>Salary records are retained as a full history updating a salary never overwrites a previous entry.</span></div>
+          <div class="table-panel">
+            <table class="table-app" id="salaryTable" style="width:100%;">
+              <thead><tr><th>Employee</th><th>Current Salary</th><th>Basis</th><th>Contracted Hours</th><th>Effective Date</th><th>Approved By</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+        <section id="tab-payroll" class="d-none">
+          <div class="disclaimer-note mb-4"><i class="bi bi-info-circle"></i><span>This module is for record management and is not a substitute for payroll or accounting software.</span></div>
+          <div class="table-panel">
+            <div class="table-toolbar"><div><span class="fw-semibold">Payroll evidence</span></div><div class="table-toolbar-actions"><button class="btn btn-sm btn-light-custom" id="exportPayrollBtn"><i class="bi bi-download"></i> Export</button></div></div>
+            <table class="table-app" id="payrollTable" style="width:100%;">
+              <thead><tr><th>Employee</th><th>Period</th><th>Gross</th><th>Overtime</th><th>Bonus</th><th>Deductions</th><th>Net</th><th>Payment Date</th><th>Reference</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const user = HR.nav.mount({ active: params.get("tab") === "payroll" ? "payroll-records" : "salary" });
+    if (!user) return;
+    if (!HR.auth.can("VIEW_PAYROLL")) {
+      document.querySelector(".app-content").innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-lock"></i></div><div class="empty-state-title">Access denied</div><div class="empty-state-text">Your role does not have permission to view salary or payroll records.</div></div></div>`;
+      document.getElementById("payrollTabs").remove();
+      return;
+    }
+    const db = HR.db, fmt = HR.format;
+
+    function currentSalaryRows() {
+      return db.employees.find((e) => e.status !== "Left").map((e) => {
+        const rows = db.salaryRecords.find((s) => s.employeeId === e.id).sort((a, b) => new Date(b.effectiveDate) - new Date(a.effectiveDate));
+        return Object.assign({ employee: e }, rows[0]);
+      }).filter((r) => r.salary !== undefined);
+    }
+
+    const salaryTable = HR.ui.initDataTable("#salaryTable", {
+      data: currentSalaryRows(),
+      order: [[0, "asc"]],
+      emptyIcon: "bi-cash-stack",
+      emptyTitle: "No salary records",
+      columns: [
+        { data: null, className: "cell-primary", render: (row) => HR.employees.fullName(row.employee) },
+        { data: "salary", render: (row, type) => type === "display" ? fmt.currency(row) : row },
+        { data: "basis" },
+        { data: "contractedHours" },
+        { data: "effectiveDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+        { data: "approvedBy" },
+        { data: null, orderable: false, className: "text-end", render: (row) => `<a href="employee-profile.html?id=${row.employee.id}&tab=salary" class="btn btn-sm btn-light-custom">View History</a>` }
+      ]
+    });
+
+    const payrollTable = HR.ui.initDataTable("#payrollTable", {
+      data: db.payrollRecords.all(),
+      order: [[7, "desc"]],
+      emptyIcon: "bi-receipt",
+      emptyTitle: "No payroll records",
+      emptyText: "Payroll evidence will appear here once recorded.",
+      columns: [
+        { data: null, render: (row) => HR.employees.fullName(db.employees.get(row.employeeId)) },
+        { data: "payrollPeriod" },
+        { data: "grossSalary", render: (row, type) => type === "display" ? fmt.currency(row) : row },
+        { data: "overtime", render: (row, type) => type === "display" ? fmt.currency(row) : row },
+        { data: "bonus", render: (row, type) => type === "display" ? fmt.currency(row) : row },
+        { data: "deductions", render: (row, type) => type === "display" ? fmt.currency(row) : row },
+        { data: "netAmount", className: "cell-primary", render: (row, type) => type === "display" ? fmt.currency(row) : row },
+        { data: "paymentDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+        { data: "payrollReference", className: "cell-secondary" }
+      ]
+    });
+    document.getElementById("exportPayrollBtn").addEventListener("click", () => {
+      const rows = payrollTable.rows({ search: "applied" }).data().toArray();
+      HR.ui.exportCsv("payroll-records.csv", ["Employee", "Period", "Gross", "Overtime", "Bonus", "Deductions", "Net", "Payment Date", "Reference"],
+        rows.map((p) => [HR.employees.fullName(db.employees.get(p.employeeId)), p.payrollPeriod, p.grossSalary, p.overtime, p.bonus, p.deductions, p.netAmount, p.paymentDate, p.payrollReference]));
+    });
+
+    function activate(tab) {
+      document.querySelectorAll("#payrollTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("tab-salary").classList.toggle("d-none", tab !== "salary");
+      document.getElementById("tab-payroll").classList.toggle("d-none", tab !== "payroll");
+      if (tab === "payroll") payrollTable.columns.adjust(); else salaryTable.columns.adjust();
+    }
+    document.querySelectorAll("#payrollTabs .nav-link").forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
+    activate(params.get("tab") === "payroll" ? "payroll" : "salary");
+  });
+  </script>
+</body>
+</html>

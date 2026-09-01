@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Global audit trail for Bloxt.">
+  <title>Audit Log Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <h1 class="page-title">Audit Log</h1>
+        <p class="page-subtitle">Immutable record of significant actions taken across the system. Only visible to authorised roles.</p>
+      </div>
+      <div class="app-content">
+        <div class="disclaimer-note mb-4"><i class="bi bi-shield-lock"></i><span>Audit events are created automatically by the system and cannot be edited or removed by ordinary users.</span></div>
+        <div class="table-panel">
+          <div class="table-toolbar">
+            <div class="table-toolbar-search"><i class="bi bi-search"></i><input type="search" class="form-control" id="auditSearch" placeholder="Search action or description…"></div>
+            <div class="table-toolbar-filters">
+              <select class="form-select form-select-sm" id="auditModuleFilter" style="width:auto;"><option value="all">All modules</option></select>
+              <input type="date" class="form-control form-control-sm" id="auditDateFilter" style="width:auto;">
+            </div>
+            <div class="table-toolbar-actions"><button class="btn btn-sm btn-light-custom" id="exportAuditBtn"><i class="bi bi-download"></i> Export</button></div>
+          </div>
+          <table class="table-app" id="auditTable" style="width:100%;">
+            <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Module</th><th>Employee</th><th>Description</th><th>Previous</th><th>New</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "audit-log" });
+    if (!user) return;
+    if (!HR.auth.can("VIEW_AUDIT_LOG")) {
+      document.querySelector(".app-content").innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-lock"></i></div><div class="empty-state-title">Access denied</div><div class="empty-state-text">Your role does not have permission to view the audit log.</div></div></div>`;
+      return;
+    }
+    const db = HR.db, fmt = HR.format;
+    const modules = [...new Set(db.auditLog.all().map((e) => e.module))];
+    document.getElementById("auditModuleFilter").innerHTML += modules.map((m) => `<option>${m}</option>`).join("");
+
+    const auditTable = HR.ui.initDataTable("#auditTable", {
+      data: db.auditLog.all(),
+      pageLength: 25,
+      order: [[0, "desc"]],
+      emptyIcon: "bi-journal-text",
+      emptyTitle: "No audit events match these filters",
+      emptyText: "System actions will be logged here automatically.",
+      columns: [
+        { data: "timestamp", className: "cell-secondary", render: (row, type) => type === "display" ? fmt.date(row, { withTime: true }) : row },
+        { data: "userName", render: (row) => row || "System" },
+        { data: "action", className: "cell-primary" },
+        { data: "module" },
+        { data: null, render: (row) => row.employeeId ? HR.employees.fullName(db.employees.get(row.employeeId) || {}) : "—" },
+        { data: "description", className: "cell-secondary", render: (row) => row || "—" },
+        { data: "previousValue", render: (row) => row || "—" },
+        { data: "newValue", render: (row) => row || "—" }
+      ]
+    });
+
+    const auditFilters = HR.ui.createFilterState(auditTable, "auditTable");
+    document.getElementById("auditSearch").addEventListener("input", (e) => auditTable.search(e.target.value).draw());
+    document.getElementById("auditModuleFilter").addEventListener("change", (e) => auditFilters.set("module", e.target.value === "all" ? null : (row) => row.module === e.target.value));
+    document.getElementById("auditDateFilter").addEventListener("change", (e) => auditFilters.set("date", !e.target.value ? null : (row) => row.timestamp.slice(0, 10) === e.target.value));
+    document.getElementById("exportAuditBtn").addEventListener("click", () => {
+      const rows = auditTable.rows({ search: "applied" }).data().toArray();
+      HR.ui.exportCsv("audit-log.csv", ["Timestamp", "User", "Action", "Module", "Employee", "Description", "Previous", "New"],
+        rows.map((e) => [e.timestamp, e.userName || "System", e.action, e.module, e.employeeId ? HR.employees.fullName(db.employees.get(e.employeeId) || {}) : "", e.description || "", e.previousValue || "", e.newValue || ""]));
+    });
+  });
+  </script>
+</body>
+</html>

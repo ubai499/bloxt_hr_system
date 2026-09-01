@@ -1,0 +1,68 @@
+@use "../abstracts/variables" as v;
+
+.modal-content {
+  border-radius: v.$radius-lg;
+  border: none;
+  box-shadow: v.$shadow-lg;
+}
+
+.modal-header {
+  border-bottom: 1px solid v.$color-border;
+  padding: v.$space-5;
+
+  .modal-title {
+    font-size: v.$fs-section-title-lg;
+    font-weight: v.$fw-semibold;
+  }
+}
+
+.modal-body { padding: v.$space-5; }
+
+.modal-footer {
+  border-top: 1px solid v.$color-border;
+  padding: v.$space-4 v.$space-5;
+}
+
+.modal-danger .modal-header {
+  .modal-title { color: v.$color-danger; }
+}
+
+// Toast notifications --------------------------------------------------------
+.toast-stack {
+  position: fixed;
+  top: 76px;
+  right: v.$space-5;
+  z-index: 1090;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.app-toast {
+  background: v.$color-surface;
+  border: 1px solid v.$color-border;
+  border-left: 4px solid v.$color-secondary;
+  border-radius: v.$radius-md;
+  box-shadow: v.$shadow-md;
+  padding: v.$space-3 v.$space-4;
+  display: flex;
+  gap: v.$space-3;
+  align-items: flex-start;
+  font-size: v.$fs-body;
+
+  &.toast-success { border-left-color: v.$color-success; .app-toast-icon { color: v.$color-success; } }
+  &.toast-warning { border-left-color: v.$color-warning; .app-toast-icon { color: v.$color-warning; } }
+  &.toast-danger  { border-left-color: v.$color-danger;  .app-toast-icon { color: v.$color-danger; } }
+  &.toast-info    { border-left-color: v.$color-info;    .app-toast-icon { color: v.$color-info; } }
+
+  .app-toast-icon { font-size: 1.1rem; margin-top: 1px; }
+  .app-toast-body { flex: 1; }
+  .app-toast-title { font-weight: v.$fw-semibold; margin-bottom: 2px; }
+  .app-toast-text { color: v.$color-text-secondary; font-size: v.$fs-table; }
+  .app-toast-close {
+    background: none; border: none; color: v.$color-text-muted; font-size: 1rem; line-height: 1;
+    padding: 0; cursor: pointer;
+    &:hover { color: v.$color-text; }
+  }
+}

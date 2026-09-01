@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Right to work monitoring for Bloxt.">
+  <title>Right to Work Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Right to Work</h1>
+            <p class="page-subtitle">Right-to-work check status and follow-up monitoring across the workforce.</p>
+          </div>
+          <button class="btn btn-primary" id="newRtwBtn"><i class="bi bi-patch-check"></i> Record Right-to-Work Check</button>
+        </div>
+      </div>
+      <div class="app-content">
+        <div class="disclaimer-note mb-4">
+          <i class="bi bi-info-circle"></i>
+          <span>Right-to-work status is derived from recorded check and permission dates for each individual. It is never inferred from nationality, and this system does not replace Home Office right-to-work guidance.</span>
+        </div>
+
+        <div class="kpi-grid mb-4" id="rtwKpiRow"></div>
+
+        <div class="table-panel">
+          <div class="table-toolbar">
+            <div class="table-toolbar-search"><i class="bi bi-search"></i><input type="search" class="form-control" id="rtwSearch" placeholder="Search employee…"></div>
+            <div class="table-toolbar-filters">
+              <select class="form-select form-select-sm" id="rtwStatusFilter" style="width:auto;"><option value="all">All statuses</option></select>
+            </div>
+            <div class="table-toolbar-actions"><button class="btn btn-sm btn-light-custom" id="exportRtwBtn"><i class="bi bi-download"></i> Export</button></div>
+          </div>
+          <table class="table-app" id="rtwTable" style="width:100%;">
+            <thead><tr><th>Employee</th><th>Nationality</th><th>Current Status</th><th>Check Method</th><th>Last Check</th><th>Permission Expiry</th><th>Next Follow-up</th><th>Evidence</th><th>Responsible Person</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="rtwModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="rtwForm">
+          <div class="modal-header"><h2 class="modal-title h5">Record Right-to-Work Check</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <p class="form-text-help mb-3"><i class="bi bi-info-circle"></i> This adds a new, dated check record. Previous checks for this employee are retained, never overwritten.</p>
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Employee<span class="required-indicator">*</span></label><select class="form-select" name="employeeId" id="rtwEmployeeSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Check date<span class="required-indicator">*</span></label><input type="date" class="form-control" name="checkDate" required></div>
+              <div class="form-field"><label class="form-label">Check method<span class="required-indicator">*</span></label><select class="form-select" name="checkMethod" id="rtwMethodSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Performed by</label><input class="form-control" name="performedBy" value="Sarah Whitfield"></div>
+              <div class="form-field"><label class="form-label">Immigration permission category</label><input class="form-control" name="immigrationCategory" placeholder="e.g. British Citizen, Skilled Worker"></div>
+              <div class="form-field"><label class="form-label">Restrictions, if any</label><input class="form-control" name="restrictions"></div>
+              <div class="form-field"><label class="form-label">Permission start</label><input type="date" class="form-control" name="permissionStart"></div>
+              <div class="form-field"><label class="form-label">Permission expiry</label><input type="date" class="form-control" name="permissionExpiry"></div>
+              <div class="form-field">
+                <label class="form-label d-block">Follow-up required?</label>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="followUpRequired" value="yes" id="rtwFollowUpYes"><label class="form-check-label" for="rtwFollowUpYes">Yes</label></div>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="followUpRequired" value="no" id="rtwFollowUpNo" checked><label class="form-check-label" for="rtwFollowUpNo">No</label></div>
+              </div>
+              <div class="form-field"><label class="form-label">Next check date</label><input type="date" class="form-control" name="nextCheckDate"></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Evidence reference</label><input class="form-control" name="evidenceRef" placeholder="e.g. share code reference, document seen"></div>
+            <div class="mt-3 form-field"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Check</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const user = HR.nav.mount({ active: params.get("tab") === "immigration" ? "immigration" : "right-to-work" });
+    if (!user) return;
+    if (!HR.auth.can("VIEW_IMMIGRATION")) {
+      document.querySelector(".app-content").innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-lock"></i></div><div class="empty-state-title">Access denied</div><div class="empty-state-text">Your role does not have permission to view right-to-work records.</div></div></div>`;
+      return;
+    }
+    const db = HR.db, fmt = HR.format;
+
+    function rows() {
+      return db.employees.find((e) => e.status !== "Left").map((emp) => {
+        const check = HR.compliance.latestRtwCheck(emp.id);
+        return {
+          employeeId: emp.id, name: HR.employees.fullName(emp), nationality: emp.nationality,
+          status: check ? HR.compliance.rtwStatus(check) : "Evidence Missing",
+          method: check ? check.checkMethod : "—", lastCheck: check ? check.checkDate : null,
+          permissionExpiry: check ? check.permissionExpiry : null, nextFollowUp: check ? check.nextCheckDate : null,
+          evidence: check ? !!check.evidenceRef : false, responsible: check ? check.performedBy : "—"
+        };
+      });
+    }
+
+    function renderKpis() {
+      const data = rows();
+      const dueOrOverdue = data.filter((r) => ["Review Due", "Expiring Soon", "Follow-up Required", "Expired"].includes(r.status)).length;
+      const expired = data.filter((r) => r.status === "Expired").length;
+      const missing = data.filter((r) => r.status === "Evidence Missing").length;
+      document.getElementById("rtwKpiRow").innerHTML = [
+        ["Total Tracked", data.length, "primary"], ["Checks Due / Expiring", dueOrOverdue, dueOrOverdue ? "warning" : "neutral"],
+        ["Expired Permissions", expired, expired ? "danger" : "neutral"], ["Evidence Missing", missing, missing ? "danger" : "neutral"]
+      ].map(([l, v, a]) => `<div class="metric-card metric-accent-${a}"><span class="metric-label">${l}</span><span class="metric-value">${v}</span></div>`).join("");
+    }
+    renderKpis();
+
+    document.getElementById("rtwStatusFilter").innerHTML += HR.enums.RTW_STATUSES.map((s) => `<option>${s}</option>`).join("");
+
+    const rtwTable = HR.ui.initDataTable("#rtwTable", {
+      data: rows(),
+      pageLength: 25,
+      order: [[0, "asc"]],
+      emptyIcon: "bi-patch-check",
+      emptyTitle: "No employees require a right-to-work review",
+      emptyText: "All tracked right-to-work statuses currently match your filters.",
+      columns: [
+        { data: "name", className: "cell-primary" },
+        { data: "nationality" },
+        { data: "status", render: (row) => fmt.statusBadge(row) },
+        { data: "method" },
+        { data: "lastCheck", render: (row, type) => row ? (type === "display" ? fmt.date(row) : row) : "—" },
+        { data: "permissionExpiry", render: (row, type) => row ? (type === "display" ? fmt.date(row) : row) : (type === "display" ? "N/A" : "9999-99-99") },
+        { data: "nextFollowUp", render: (row, type) => row ? (type === "display" ? fmt.date(row) : row) : "—" },
+        { data: "evidence", render: (row) => row ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>' },
+        { data: "responsible" }
+      ]
+    });
+
+    document.querySelector("#rtwTable tbody").addEventListener("click", (e) => {
+      const tr = e.target.closest("tr");
+      const rowData = tr && rtwTable.row(tr).data();
+      if (rowData) window.location.href = `employee-profile.html?id=${rowData.employeeId}&tab=rtw`;
+    });
+
+    const rtwFilters = HR.ui.createFilterState(rtwTable, "rtwTable");
+    document.getElementById("rtwSearch").addEventListener("input", (e) => rtwTable.search(e.target.value).draw());
+    if (params.get("employee")) { const emp = db.employees.get(params.get("employee")); if (emp) { document.getElementById("rtwSearch").value = HR.employees.fullName(emp); rtwTable.search(HR.employees.fullName(emp)).draw(); } }
+    document.getElementById("rtwStatusFilter").addEventListener("change", (e) => rtwFilters.set("status", e.target.value === "all" ? null : (row) => row.status === e.target.value));
+    document.getElementById("exportRtwBtn").addEventListener("click", () => {
+      const data = rtwTable.rows({ search: "applied" }).data().toArray();
+      HR.ui.exportCsv("right-to-work-status.csv", ["Employee", "Nationality", "Status", "Method", "Last Check", "Permission Expiry", "Next Follow-up", "Responsible"],
+        data.map((r) => [r.name, r.nationality, r.status, r.method, r.lastCheck || "", r.permissionExpiry || "", r.nextFollowUp || "", r.responsible]));
+    });
+
+    // New check modal ----------------------------------------------------------------
+    document.getElementById("rtwEmployeeSelect").innerHTML = db.employees.all().map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+    document.getElementById("rtwMethodSelect").innerHTML = HR.enums.RTW_CHECK_METHODS.map((m) => `<option>${m}</option>`).join("");
+    const rtwModal = new bootstrap.Modal(document.getElementById("rtwModal"));
+    function openModal() {
+      const form = document.getElementById("rtwForm");
+      form.reset();
+      form.elements["checkDate"].valueAsDate = new Date();
+      if (params.get("employee")) form.elements["employeeId"].value = params.get("employee");
+      rtwModal.show();
+    }
+    document.getElementById("newRtwBtn").addEventListener("click", openModal);
+    if (params.get("new") === "1") openModal();
+
+    document.getElementById("rtwForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      db.rightToWorkChecks.create({
+        employeeId: data.employeeId, checkDate: data.checkDate, checkMethod: data.checkMethod, performedBy: data.performedBy || user.name,
+        createdBy: user.name, immigrationCategory: data.immigrationCategory || "Not specified", permissionStart: data.permissionStart || null,
+        permissionExpiry: data.permissionExpiry || null, restrictions: data.restrictions || null, followUpRequired: data.followUpRequired === "yes",
+        nextCheckDate: data.nextCheckDate || null, evidenceRef: data.evidenceRef || null, status: data.permissionExpiry ? "Review Due" : "Valid", notes: data.notes || ""
+      });
+      HR.audit.log({ employeeId: data.employeeId, action: "Right-to-work check completed", module: "Right to Work", description: `${data.checkMethod} recorded.` });
+      rtwModal.hide();
+      HR.ui.toastSuccess("Right-to-work check saved", "The new check has been added to the employee's record.");
+      rtwTable.clear().rows.add(rows()).draw();
+      renderKpis();
+    });
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Attendance and absence records for Bloxt.">
+  <title>Attendance Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Attendance</h1>
+            <p class="page-subtitle">Daily attendance records and absence management.</p>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" id="recordAttendanceBtn"><i class="bi bi-calendar-check"></i> Record Attendance</button>
+          </div>
+        </div>
+        <ul class="nav profile-tabs mt-4" id="attTabs">
+          <li class="nav-item"><button class="nav-link active" data-tab="attendance">Daily Attendance</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="absence">Absence</button></li>
+        </ul>
+      </div>
+
+      <div class="app-content">
+        <section id="tab-attendance">
+          <div class="table-panel">
+            <div class="table-toolbar">
+              <div class="table-toolbar-filters">
+                <input type="date" class="form-control form-control-sm" id="attDateFilter" style="width:auto;">
+                <select class="form-select form-select-sm" id="attStatusFilter" style="width:auto;"><option value="all">All statuses</option></select>
+                <select class="form-select form-select-sm" id="attEmployeeFilter" style="width:auto;"><option value="all">All employees</option></select>
+              </div>
+              <div class="table-toolbar-actions">
+                <button class="btn btn-sm btn-light-custom" id="exportAttBtn"><i class="bi bi-download"></i> Export</button>
+              </div>
+            </div>
+            <table class="table-app" id="attendanceTable" style="width:100%;">
+              <thead><tr><th>Employee</th><th>Date</th><th>Expected Start</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Location</th><th>Status</th><th>Notes</th><th>Reviewed</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="tab-absence" class="d-none">
+          <div class="panel mb-4">
+            <div class="panel-header"><div><div class="panel-title">Review Alerts</div><div class="panel-desc">Automatically generated from attendance patterns these require review, not automatic conclusions of misconduct.</div></div></div>
+            <div id="alertsList"></div>
+          </div>
+          <div class="table-panel">
+            <div class="table-toolbar">
+              <div><span class="fw-semibold">Absence records</span></div>
+              <div class="table-toolbar-actions">
+                <button class="btn btn-sm btn-primary" id="recordAbsenceBtn"><i class="bi bi-plus-lg"></i> Record Absence</button>
+              </div>
+            </div>
+            <table class="table-app" id="absenceTable" style="width:100%;">
+              <thead><tr><th>Employee</th><th>Date</th><th>Type</th><th>Reason</th><th>Reported</th><th>Expected Return</th><th>Authorised</th><th>Follow-up</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record attendance modal -->
+  <div class="modal fade" id="attModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="attForm">
+          <div class="modal-header"><h2 class="modal-title h5">Record Attendance</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Employee<span class="required-indicator">*</span></label><select class="form-select" name="employeeId" id="attEmployeeSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Date<span class="required-indicator">*</span></label><input type="date" class="form-control" name="date" required></div>
+              <div class="form-field"><label class="form-label">Expected start</label><input type="time" class="form-control" name="expectedStart" value="09:00"></div>
+              <div class="form-field"><label class="form-label">Status<span class="required-indicator">*</span></label><select class="form-select" name="status" id="attStatusSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Clock in</label><input type="time" class="form-control" name="clockIn"></div>
+              <div class="form-field"><label class="form-label">Clock out</label><input type="time" class="form-control" name="clockOut"></div>
+              <div class="form-field"><label class="form-label">Work location</label><select class="form-select" name="workLocation"><option>Office</option><option>Remote</option><option>Client Site</option><option>N/A</option></select></div>
+              <div class="form-field"><label class="form-label">Hours</label><input type="number" step="0.5" class="form-control" name="hours" value="8"></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Record</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record absence modal -->
+  <div class="modal fade" id="absModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="absForm">
+          <div class="modal-header"><h2 class="modal-title h5">Record Absence</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Employee<span class="required-indicator">*</span></label><select class="form-select" name="employeeId" id="absEmployeeSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Date<span class="required-indicator">*</span></label><input type="date" class="form-control" name="date" required></div>
+              <div class="form-field"><label class="form-label">Absence type<span class="required-indicator">*</span></label><select class="form-select" name="absenceType" required><option>Sick</option><option>Authorised Absence</option><option>Unauthorised Absence</option><option>Other</option></select></div>
+              <div class="form-field"><label class="form-label">How reported</label><input class="form-control" name="howReported" placeholder="e.g. Phone call, email"></div>
+              <div class="form-field"><label class="form-label">Expected return</label><input type="date" class="form-control" name="expectedReturn"></div>
+              <div class="form-field"><label class="form-label">Reported to</label><input class="form-control" name="reportedTo" placeholder="e.g. Line manager"></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Reason</label><input class="form-control" name="reason"></div>
+            <div class="mt-3 d-flex gap-4">
+              <div class="form-check"><input class="form-check-input" type="checkbox" name="authorised" id="absAuthorised"><label class="form-check-label" for="absAuthorised">Authorised</label></div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" name="followUpRequired" id="absFollowUp"><label class="form-check-label" for="absFollowUp">Follow-up required</label></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Manager notes</label><textarea class="form-control" name="managerNotes" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Absence Record</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script src="assets/js/attendance.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const user = HR.nav.mount({ active: params.get("tab") === "absence" ? "absence" : "attendance" });
+    if (!user) return;
+    const db = HR.db, fmt = HR.format;
+
+    function scopedEmployees() {
+      if (user.role === HR.enums.ROLES.MANAGER) {
+        const emp = HR.auth.employeeRecordFor(user);
+        return HR.employees.directRatingsForManager(emp ? emp.id : null);
+      }
+      if (user.role === HR.enums.ROLES.EMPLOYEE) {
+        const emp = HR.auth.employeeRecordFor(user);
+        return emp ? [emp] : [];
+      }
+      return db.employees.all();
+    }
+    const empScope = scopedEmployees();
+    const empIds = empScope.map((e) => e.id);
+
+    function activateTab(tab) {
+      document.querySelectorAll("#attTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("tab-attendance").classList.toggle("d-none", tab !== "attendance");
+      document.getElementById("tab-absence").classList.toggle("d-none", tab !== "absence");
+      if (tab === "absence") absenceTable.columns.adjust(); else attendanceTable.columns.adjust();
+    }
+
+    // Attendance table -----------------------------------------------------------
+    document.getElementById("attStatusFilter").innerHTML += HR.enums.ATTENDANCE_STATUSES.map((s) => `<option>${s}</option>`).join("");
+    document.getElementById("attEmployeeFilter").innerHTML += empScope.map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+
+    const attendanceTable = HR.ui.initDataTable("#attendanceTable", {
+      data: db.attendance.find((a) => empIds.includes(a.employeeId)),
+      order: [[1, "desc"]],
+      emptyIcon: "bi-calendar-check",
+      emptyTitle: "No attendance records match these filters",
+      emptyText: "Adjust your filters or record a new attendance entry.",
+      columns: [
+        { data: null, render: (row) => { const emp = db.employees.get(row.employeeId); return `<div class="employee-cell"><span class="avatar-circle">${fmt.initials(emp.firstName, emp.lastName)}</span>${emp.firstName} ${emp.lastName}</div>`; } },
+        { data: "date", render: (row, type) => type === "display" ? fmt.date(row) : row },
+        { data: "expectedStart" },
+        { data: "clockIn", render: (row) => row || "—" },
+        { data: "clockOut", render: (row) => row || "—" },
+        { data: "hours" },
+        { data: "workLocation" },
+        { data: "status", render: (row) => fmt.statusBadge(row) },
+        { data: "notes", className: "cell-secondary", render: (row) => row || "—" },
+        { data: null, orderable: false, render: (row) => row.managerReviewed ? '<i class="bi bi-check-circle text-success"></i>' : `<button class="btn btn-sm btn-outline-primary" data-review="${row.id}">Mark reviewed</button>` }
+      ]
+    });
+
+    document.querySelector("#attendanceTable tbody").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-review]");
+      if (!btn) return;
+      db.attendance.update(btn.dataset.review, { managerReviewed: true });
+      HR.ui.toastSuccess("Marked reviewed", "Attendance record updated.");
+      attendanceTable.clear().rows.add(db.attendance.find((a) => empIds.includes(a.employeeId))).draw(false);
+    });
+
+    const attFilters = HR.ui.createFilterState(attendanceTable, "attendanceTable");
+    document.getElementById("attDateFilter").addEventListener("change", (e) => attFilters.set("date", !e.target.value ? null : (row) => row.date === e.target.value));
+    document.getElementById("attStatusFilter").addEventListener("change", (e) => attFilters.set("status", e.target.value === "all" ? null : (row) => row.status === e.target.value));
+    document.getElementById("attEmployeeFilter").addEventListener("change", (e) => attFilters.set("employee", e.target.value === "all" ? null : (row) => row.employeeId === e.target.value));
+    document.getElementById("exportAttBtn").addEventListener("click", () => {
+      const rows = attendanceTable.rows({ search: "applied" }).data().toArray();
+      HR.ui.exportCsv("attendance-records.csv", ["Employee", "Date", "Expected Start", "Clock In", "Clock Out", "Hours", "Location", "Status", "Notes"],
+        rows.map((a) => { const e = db.employees.get(a.employeeId); return [`${e.firstName} ${e.lastName}`, a.date, a.expectedStart, a.clockIn, a.clockOut, a.hours, a.workLocation, a.status, a.notes || ""]; }));
+    });
+
+    // Record attendance modal ------------------------------------------------------
+    document.getElementById("attEmployeeSelect").innerHTML = empScope.map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+    document.getElementById("attStatusSelect").innerHTML = HR.enums.ATTENDANCE_STATUSES.map((s) => `<option>${s}</option>`).join("");
+    const attModal = new bootstrap.Modal(document.getElementById("attModal"));
+    function openAttModal() {
+      const form = document.getElementById("attForm");
+      form.reset();
+      form.elements["date"].valueAsDate = new Date();
+      if (params.get("employee")) form.elements["employeeId"].value = params.get("employee");
+      attModal.show();
+    }
+    document.getElementById("recordAttendanceBtn").addEventListener("click", openAttModal);
+    if (params.get("new") === "1" && !params.get("tab")) openAttModal();
+    document.getElementById("attForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      db.attendance.create({ employeeId: data.employeeId, date: data.date, expectedStart: data.expectedStart, clockIn: data.clockIn || null, clockOut: data.clockOut || null, hours: Number(data.hours) || 0, workLocation: data.workLocation, status: data.status, notes: data.notes || null, managerReviewed: true, createdBy: user.name });
+      HR.audit.log({ employeeId: data.employeeId, action: "Attendance recorded", module: "Attendance", description: `Attendance recorded for ${data.date} ${data.status}.` });
+      attModal.hide();
+      HR.ui.toastSuccess("Attendance saved", "The attendance record has been added.");
+      attendanceTable.clear().rows.add(db.attendance.find((a) => empIds.includes(a.employeeId))).draw();
+    });
+
+    // Absence tab --------------------------------------------------------------------
+    function renderAlerts() {
+      const alerts = HR.attendanceHelpers.getAttendanceAlerts().filter((a) => empIds.includes(a.employeeId));
+      const el = document.getElementById("alertsList");
+      if (!alerts.length) {
+        el.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-check2-circle"></i></div><div class="empty-state-title">No review alerts</div><div class="empty-state-text">Attendance patterns look consistent nothing needs review right now.</div></div>`;
+        return;
+      }
+      el.innerHTML = alerts.map((a) => {
+        const emp = db.employees.get(a.employeeId);
+        return `<div class="action-item">
+          <span class="action-priority-dot priority-dot-${a.tone === "danger" ? "high" : a.tone === "warning" ? "medium" : "low"}"></span>
+          <div class="action-body">
+            <div class="action-title">${a.type}</div>
+            <div class="action-meta"><span><i class="bi bi-person"></i> ${emp.firstName} ${emp.lastName}</span>${a.date ? `<span><i class="bi bi-calendar-event"></i> ${fmt.date(a.date)}</span>` : ""}</div>
+          </div>
+          <a href="employee-profile.html?id=${emp.id}&tab=attendance" class="btn btn-sm btn-light-custom">Review</a>
+        </div>`;
+      }).join("");
+    }
+    renderAlerts();
+
+    const absenceTable = HR.ui.initDataTable("#absenceTable", {
+      data: db.absence.find((a) => empIds.includes(a.employeeId)),
+      order: [[1, "desc"]],
+      emptyIcon: "bi-clipboard-x",
+      emptyTitle: "No absence records",
+      emptyText: "Absence records will appear here once logged.",
+      columns: [
+        { data: null, render: (row) => { const e = db.employees.get(row.employeeId); return `${e.firstName} ${e.lastName}`; } },
+        { data: "date", render: (row, type) => type === "display" ? fmt.date(row) : row },
+        { data: "absenceType", render: (row) => fmt.statusBadge(row) },
+        { data: "reason", render: (row) => row || "—" },
+        { data: null, render: (row) => row.dateReported ? fmt.date(row.dateReported) + " (" + (row.howReported || "—") + ")" : "Not reported" },
+        { data: "expectedReturn", render: (row) => row ? fmt.date(row) : "—" },
+        { data: null, render: (row) => row.authorised ? '<i class="bi bi-check-circle text-success"></i> Yes' : '<i class="bi bi-x-circle text-danger"></i> No' },
+        { data: null, render: (row) => row.followUpRequired ? fmt.statusBadge("Follow-up Required") : "—" }
+      ]
+    });
+
+    document.getElementById("absEmployeeSelect").innerHTML = empScope.map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+    const absModal = new bootstrap.Modal(document.getElementById("absModal"));
+    function openAbsModal() {
+      const form = document.getElementById("absForm");
+      form.reset();
+      form.elements["date"].valueAsDate = new Date();
+      if (params.get("employee")) form.elements["employeeId"].value = params.get("employee");
+      absModal.show();
+    }
+    document.getElementById("recordAbsenceBtn").addEventListener("click", openAbsModal);
+    if (params.get("new") === "1" && params.get("tab") === "absence") openAbsModal();
+    document.getElementById("absForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      db.absence.create({
+        employeeId: data.employeeId, date: data.date, expectedWorkDay: true, absenceType: data.absenceType,
+        reason: data.reason || null, dateReported: data.date, howReported: data.howReported || null, reportedTo: data.reportedTo || null,
+        expectedReturn: data.expectedReturn || null, actualReturn: null, evidenceRef: null,
+        managerNotes: data.managerNotes || null, hrNotes: null, authorised: fd.has("authorised"), followUpRequired: fd.has("followUpRequired")
+      });
+      HR.audit.log({ employeeId: data.employeeId, action: "Absence recorded", module: "Absence", description: `${data.absenceType} recorded for ${data.date}.` });
+      absModal.hide();
+      HR.ui.toastSuccess("Absence recorded", "The absence record has been saved.");
+      absenceTable.clear().rows.add(db.absence.find((a) => empIds.includes(a.employeeId))).draw();
+      renderAlerts();
+    });
+
+    document.querySelectorAll("#attTabs .nav-link").forEach((b) => b.addEventListener("click", () => activateTab(b.dataset.tab)));
+    activateTab(params.get("tab") === "absence" ? "absence" : "attendance");
+  });
+  </script>
+</body>
+</html>

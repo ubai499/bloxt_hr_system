@@ -1,0 +1,49 @@
+@use "../abstracts/variables" as v;
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: v.$fs-meta;
+  font-weight: v.$fw-medium;
+  padding: 3px 10px;
+  border-radius: 100px;
+  line-height: 1.5;
+  white-space: nowrap;
+
+  &::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &.badge-success { background: v.$color-success-bg; color: v.$color-success; &::before { background: v.$color-success; } }
+  &.badge-warning { background: v.$color-warning-bg; color: v.$color-warning; &::before { background: v.$color-warning; } }
+  &.badge-danger  { background: v.$color-danger-bg;  color: v.$color-danger;  &::before { background: v.$color-danger; } }
+  &.badge-info    { background: v.$color-info-bg;    color: v.$color-info;    &::before { background: v.$color-info; } }
+  &.badge-neutral { background: v.$color-neutral-bg; color: v.$color-neutral; &::before { background: v.$color-neutral; } }
+  &.badge-accent  { background: rgba(182,178,71,0.16); color: v.$color-accent; &::before { background: v.$color-accent; } }
+}
+
+.priority-dot-high { background: v.$color-danger; }
+.priority-dot-medium { background: v.$color-warning; }
+.priority-dot-low { background: v.$color-info; }
+
+.data-classification-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: v.$fw-semibold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+
+  &.classification-normal { color: v.$color-text-secondary; }
+  &.classification-confidential { color: v.$color-warning; }
+  &.classification-restricted { color: v.$color-danger; }
+}

@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Compliance dashboard, calendar and internal reviews for Bloxt.">
+  <title>Compliance Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <div>
+          <h1 class="page-title">Compliance</h1>
+          <p class="page-subtitle">Company-wide compliance monitoring, calendar and internal review programme.</p>
+        </div>
+        <ul class="nav profile-tabs mt-4" id="complianceTabs">
+          <li class="nav-item"><button class="nav-link active" data-tab="dashboard">Dashboard</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="calendar">Compliance Calendar</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="checklist">Checklist</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="reviews">Internal Reviews</button></li>
+        </ul>
+      </div>
+      <div class="app-content" id="complianceContent"></div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <form id="reviewForm">
+          <div class="modal-header"><h2 class="modal-title h5">New Internal Compliance Review</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Review number<span class="required-indicator">*</span></label><input class="form-control" name="reviewNumber" required></div>
+              <div class="form-field"><label class="form-label">Review date<span class="required-indicator">*</span></label><input type="date" class="form-control" name="reviewDate" required></div>
+              <div class="form-field"><label class="form-label">Reviewer</label><input class="form-control" name="reviewer" value="Meera Iyer"></div>
+              <div class="form-field"><label class="form-label">Area</label><input class="form-control" name="area" placeholder="e.g. Right to work records"></div>
+              <div class="form-field"><label class="form-label">Employees sampled</label><input type="number" min="0" class="form-control" name="employeesSampled"></div>
+              <div class="form-field"><label class="form-label">Due date</label><input type="date" class="form-control" name="dueDate"></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Records reviewed</label><input class="form-control" name="recordsReviewed"></div>
+            <div class="mt-3 form-field"><label class="form-label">Issues found</label><textarea class="form-control" name="issuesFound" rows="2"></textarea></div>
+            <div class="mt-3 form-field"><label class="form-label">Actions required</label><textarea class="form-control" name="actionsRequired" rows="2"></textarea></div>
+            <div class="mt-3 form-grid-2">
+              <div class="form-field"><label class="form-label">Responsible person</label><input class="form-control" name="responsiblePerson"></div>
+              <div class="form-field"><label class="form-label">Result</label><select class="form-select" name="result"><option>No Action</option><option>Follow-up Required</option><option>Action Plan Open</option><option>Completed</option></select></div>
+            </div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Review</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "compliance-calendar" });
+    if (!user) return;
+    if (!HR.auth.can("VIEW_COMPLIANCE")) {
+      document.getElementById("complianceContent").innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-lock"></i></div><div class="empty-state-title">Access denied</div><div class="empty-state-text">Your role does not have permission to view the compliance workspace.</div></div></div>`;
+      document.getElementById("complianceTabs").remove();
+      return;
+    }
+    const db = HR.db, fmt = HR.format;
+    const params = new URLSearchParams(window.location.search);
+    let calendarView = "month";
+    let calMonth = new Date();
+    calMonth.setDate(1);
+
+    function tabDashboard() {
+      const m = HR.compliance.getComplianceMetrics();
+      const cards = [
+        ["Employees Requiring Action", m.actionRequired, "danger", "bi-list-check"],
+        ["Right-to-Work Reviews Due", m.rtwDue, "warning", "bi-patch-check"],
+        ["Immigration Permissions Nearing Expiry", m.immigrationNearExpiry, "warning", "bi-passport"],
+        ["Missing Employee Information", m.missingInfoCount, "info", "bi-person-exclamation"],
+        ["Unresolved Attendance Issues", m.unresolvedAttendance, "warning", "bi-clipboard-x"],
+        ["Documents Nearing Expiry", m.docsExpiring, "warning", "bi-file-earmark-text"],
+        ["Sponsor Events Under Review", m.sponsorEventsUnderReview, "info", "bi-shield-exclamation"],
+        ["Overdue Internal Reviews", m.overdueReviews, "danger", "bi-journal-x"]
+      ];
+      const items = HR.compliance.getActionCentreItems();
+      return `
+        <div class="kpi-grid mb-4">${cards.map(([l, v, a, i]) => `<div class="metric-card metric-accent-${v > 0 ? a : "neutral"}"><span class="metric-icon"><i class="bi ${i}"></i></span><span class="metric-label">${l}</span><span class="metric-value">${v}</span><span class="metric-context">${v === 0 ? "No immediate action" : v + (v === 1 ? " item" : " items") + " to review"}</span></div>`).join("")}</div>
+        <div class="panel mb-4">
+          <div class="panel-header"><div class="panel-title">All Outstanding Compliance Actions</div></div>
+          ${items.length ? items.map((i) => `<div class="action-item"><span class="action-priority-dot priority-dot-${i.priority.toLowerCase()}"></span><div class="action-body"><div class="action-title">${fmt.escapeHtml(i.issue)}</div><div class="action-meta"><span>${fmt.escapeHtml(i.employee)}</span>${i.dueDate ? `<span>Due ${fmt.date(i.dueDate)}</span>` : ""}</div></div><a href="${i.href}" class="btn btn-sm btn-light-custom">Review</a></div>`).join("") : `<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-check2-circle"></i></div><div class="empty-state-title">No immediate action required</div><div class="empty-state-text">Internal controls indicate all monitored records are up to date.</div></div>`}
+        </div>
+        <div class="disclaimer-note"><i class="bi bi-info-circle"></i><span>This system supports the organisation's internal HR record-keeping and compliance processes. It does not replace the Home Office Sponsor Management System, professional immigration advice, or current sponsor guidance.</span></div>`;
+    }
+
+    function tabCalendar() {
+      const events = HR.compliance.getCalendarEvents();
+      return `
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+          <div class="btn-group" role="group">
+            <button class="btn btn-sm ${calendarView === "month" ? "btn-primary" : "btn-light-custom"}" id="viewMonthBtn">Month</button>
+            <button class="btn btn-sm ${calendarView === "list" ? "btn-primary" : "btn-light-custom"}" id="viewListBtn">List</button>
+          </div>
+          ${calendarView === "month" ? `<div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-light-custom" id="prevMonthBtn"><i class="bi bi-chevron-left"></i></button>
+            <span class="fw-semibold" id="monthLabel"></span>
+            <button class="btn btn-sm btn-light-custom" id="nextMonthBtn"><i class="bi bi-chevron-right"></i></button>
+          </div>` : ""}
+        </div>
+        <div id="calendarBody"></div>`;
+    }
+
+    function renderCalendarBody() {
+      const events = HR.compliance.getCalendarEvents();
+      const body = document.getElementById("calendarBody");
+      if (!body) return;
+      if (calendarView === "list") {
+        const upcoming = events.filter((e) => fmt.daysUntil(e.date) !== null && fmt.daysUntil(e.date) >= -7);
+        body.innerHTML = `<div class="table-panel"><table class="table-app" id="calendarListTable" style="width:100%;">
+          <thead><tr><th>Date</th><th>Type</th><th>Details</th></tr></thead>
+          <tbody></tbody>
+        </table></div>`;
+        HR.ui.initDataTable("#calendarListTable", {
+          data: upcoming,
+          paging: false, info: false,
+          order: [[0, "asc"]],
+          emptyIcon: "bi-calendar-week",
+          emptyTitle: "No compliance events scheduled",
+          emptyText: "Upcoming right-to-work, document and review dates will appear here.",
+          columns: [
+            { data: "date", render: (row, type) => type === "display" ? fmt.date(row) : row },
+            { data: null, render: (row) => fmt.statusBadge(row.tone === "danger" ? "Overdue" : row.type) },
+            { data: "label", render: (row) => fmt.escapeHtml(row) }
+          ]
+        });
+        return;
+      }
+      const year = calMonth.getFullYear(), month = calMonth.getMonth();
+      document.getElementById("monthLabel").textContent = calMonth.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+      const firstDay = new Date(year, month, 1);
+      const startOffset = (firstDay.getDay() + 6) % 7; // Monday-first
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      let cells = "";
+      ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach((d) => cells += `<div class="cal-day-head">${d}</div>`);
+      for (let i = 0; i < startOffset; i++) cells += `<div class="cal-day-cell is-muted"></div>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const dayEvents = events.filter((e) => e.date === dateStr);
+        cells += `<div class="cal-day-cell ${dateStr === todayStr ? "" : ""}">
+          <div class="cal-day-num">${d}</div>
+          ${dayEvents.map((e) => `<span class="cal-event-chip chip-${e.tone}" title="${fmt.escapeHtml(e.label)}">${fmt.escapeHtml(e.label)}</span>`).join("")}
+        </div>`;
+      }
+      body.innerHTML = `<div class="calendar-month-grid">${cells}</div>`;
+    }
+
+    function tabChecklist() {
+      const employees = db.employees.find((e) => e.status !== "Left");
+      return `
+        <div class="form-field mb-4" style="max-width:360px;">
+          <label class="form-label">Select employee</label>
+          <select class="form-select" id="checklistEmployeeSelect">${employees.map((e) => `<option value="${e.id}">${HR.employees.fullName(e)}</option>`).join("")}</select>
+        </div>
+        <div class="row g-4">
+          <div class="col-lg-7"><div class="panel"><div class="panel-header"><div class="panel-title">Employee Record Checklist</div></div><div class="checklist-group" id="employeeChecklist"></div></div></div>
+          <div class="col-lg-5"><div class="panel"><div class="panel-header"><div class="panel-title">Organisation Checklist</div></div><div class="checklist-group" id="orgChecklist">
+            ${["Company details current", "Key personnel current", "Sponsor information reviewed", "Work locations current", "Employee records reviewed", "Reporting register reviewed", "Document retention reviewed"].map((label) => `<div class="checklist-item"><input class="form-check-input" type="checkbox" disabled checked><span class="small">${label}</span></div>`).join("")}
+          </div></div></div>
+        </div>`;
+    }
+
+    function renderEmployeeChecklist(employeeId) {
+      const items = HR.compliance.getEmployeeChecklist(employeeId);
+      document.getElementById("employeeChecklist").innerHTML = items.map((i) => `<div class="checklist-item"><input class="form-check-input" type="checkbox" disabled ${i.complete ? "checked" : ""}><span class="small ${i.complete ? "" : "text-secondary-custom"}">${i.label}${i.complete ? "" : " outstanding"}</span></div>`).join("");
+    }
+
+    function tabReviews() {
+      return `<div class="table-panel">
+        <div class="table-toolbar"><div><span class="fw-semibold">Internal HR Compliance Reviews</span></div>
+          <div class="table-toolbar-actions"><button class="btn btn-sm btn-primary" id="newReviewBtn"><i class="bi bi-plus-lg"></i> New Review</button></div>
+        </div>
+        <table class="table-app" id="reviewsTable" style="width:100%;">
+          <thead><tr><th>Review #</th><th>Date</th><th>Reviewer</th><th>Area</th><th>Issues Found</th><th>Result</th><th>Due Date</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+
+    const RENDERERS = { dashboard: tabDashboard, calendar: tabCalendar, checklist: tabChecklist, reviews: tabReviews };
+
+    function activate(tab) {
+      document.querySelectorAll("#complianceTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("complianceContent").innerHTML = RENDERERS[tab]();
+      if (tab === "calendar") wireCalendar();
+      if (tab === "checklist") wireChecklist();
+      if (tab === "reviews") wireReviews();
+    }
+    document.querySelectorAll("#complianceTabs .nav-link").forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
+
+    function wireCalendar() {
+      renderCalendarBody();
+      document.getElementById("viewMonthBtn").addEventListener("click", () => { calendarView = "month"; activate("calendar"); });
+      document.getElementById("viewListBtn").addEventListener("click", () => { calendarView = "list"; activate("calendar"); });
+      if (calendarView === "month") {
+        document.getElementById("prevMonthBtn").addEventListener("click", () => { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendarBody(); });
+        document.getElementById("nextMonthBtn").addEventListener("click", () => { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendarBody(); });
+      }
+    }
+
+    function wireChecklist() {
+      const select = document.getElementById("checklistEmployeeSelect");
+      renderEmployeeChecklist(select.value);
+      select.addEventListener("change", () => renderEmployeeChecklist(select.value));
+    }
+
+    function wireReviews() {
+      HR.ui.initDataTable("#reviewsTable", {
+        data: db.complianceReviews.all(),
+        order: [[1, "desc"]],
+        emptyIcon: "bi-journal-check",
+        emptyTitle: "No internal reviews recorded",
+        emptyText: "Internal HR compliance reviews will appear here once logged.",
+        columns: [
+          { data: "reviewNumber", className: "cell-primary" },
+          { data: "reviewDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "reviewer" },
+          { data: "area" },
+          { data: "issuesFound", className: "cell-secondary", render: (row) => row || "None recorded" },
+          { data: "result", render: (row) => fmt.statusBadge(row) },
+          { data: "dueDate", render: (row, type) => row ? (type === "display" ? fmt.date(row) : row) : "—" }
+        ]
+      });
+      const modal = new bootstrap.Modal(document.getElementById("reviewModal"));
+      document.getElementById("newReviewBtn").addEventListener("click", () => {
+        const form = document.getElementById("reviewForm");
+        form.reset();
+        form.elements["reviewDate"].valueAsDate = new Date();
+        form.elements["reviewNumber"].value = `REV-${new Date().getFullYear()}-${String(db.complianceReviews.all().length + 1).padStart(3, "0")}`;
+        modal.show();
+      });
+      document.getElementById("reviewForm").onsubmit = (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        db.complianceReviews.create(Object.assign(data, { employeesSampled: Number(data.employeesSampled) || 0, completionDate: data.result === "Completed" ? HR.util.nowISO().slice(0, 10) : null, evidenceRef: null }));
+        HR.audit.log({ action: "Internal compliance review created", module: "Compliance", description: `${data.reviewNumber} recorded for ${data.area}.` });
+        modal.hide();
+        HR.ui.toastSuccess("Review saved", "The internal compliance review has been recorded.");
+        activate("reviews");
+      };
+    }
+
+    activate(params.get("tab") || "dashboard");
+  });
+  </script>
+</body>
+</html>

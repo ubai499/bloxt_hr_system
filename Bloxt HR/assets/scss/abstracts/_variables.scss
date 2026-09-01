@@ -1,0 +1,107 @@
+// =============================================================================
+// DESIGN TOKENS — Bloxt HR & Employee Compliance Management System
+// =============================================================================
+
+// Brand / surface colours -----------------------------------------------------
+// Derived from the Bloxt Limited logo (near-black wordmark + olive-gold accent).
+// The raw logo gold (#B6B247) is too light to pass text contrast on white, so
+// $color-secondary/$color-accent use deepened, accessible shades of it for
+// buttons, links and focus states; $color-gold keeps the true brand tone for
+// decorative use only (dots, dividers, chart fills — never body text).
+$color-primary:        #1A1A18;
+$color-primary-dark:   #0D0D0C;
+$color-secondary:      #6B6B24;
+$color-accent:         #5C5A1C;
+$color-gold:           #B6B247;
+$color-gold-bg:        #F3F3E2;
+
+$color-bg:             #F5F7FA;
+$color-surface:        #FFFFFF;
+$color-sidebar:        #121212;
+
+$color-text:           #182230;
+$color-text-secondary: #657180;
+$color-text-muted:     #8994A3;
+$color-border:         #DFE5EC;
+
+// Status colours ---------------------------------------------------------------
+$color-success:        #287A52;
+$color-success-bg:     #E5F3EC;
+$color-warning:        #B7791F;
+$color-warning-bg:     #FBF0DC;
+$color-danger:         #B83A3A;
+$color-danger-bg:      #FAEAEA;
+$color-info:           #3169A8;
+$color-info-bg:        #E7EFF7;
+$color-neutral:        #657180;
+$color-neutral-bg:     #ECEEF1;
+
+// Sidebar text tones -------------------------------------------------------
+$sidebar-text:          rgba(255, 255, 255, 0.72);
+$sidebar-text-active:   #FFFFFF;
+$sidebar-heading:       rgba(255, 255, 255, 0.38);
+$sidebar-hover-bg:      rgba(255, 255, 255, 0.07);
+$sidebar-active-bg:     rgba(182, 178, 71, 0.18);
+$sidebar-border:        rgba(255, 255, 255, 0.08);
+
+// Typography -------------------------------------------------------------------
+$font-family-base: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+
+$fs-page-title:     1.75rem;   // 28px
+$fs-page-title-lg:  2rem;      // 32px
+$fs-section-title:  1.125rem;  // 18px
+$fs-section-title-lg: 1.3125rem; // 21px
+$fs-body:           0.875rem;  // 14px
+$fs-body-lg:        1rem;      // 16px
+$fs-table:          0.8125rem; // 13px
+$fs-meta:           0.75rem;   // 12px
+
+$fw-regular: 400;
+$fw-medium:  500;
+$fw-semibold: 600;
+$fw-bold:    700;
+
+// Spacing (8px base system) -----------------------------------------------------
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 40px;
+$space-8: 48px;
+
+// Radius -------------------------------------------------------------------------
+$radius-sm: 6px;
+$radius-md: 8px;
+$radius-lg: 10px;
+$radius-xl: 12px;
+
+// Shadows --------------------------------------------------------------------------
+$shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+$shadow-md: 0 2px 6px rgba(16, 24, 40, 0.08);
+$shadow-lg: 0 8px 24px rgba(16, 24, 40, 0.12);
+
+// Layout ----------------------------------------------------------------------------
+$sidebar-width: 264px;
+$sidebar-width-collapsed: 76px;
+$header-height: 64px;
+
+// Transitions -------------------------------------------------------------------------
+$transition-base: 0.18s ease;
+
+// Breakpoints (map for mixins; mirrors Bootstrap defaults) ------------------------------
+$bp-xs: 0;
+$bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
+$bp-xl: 1200px;
+$bp-xxl: 1400px;
+
+// NOTE: Bootstrap variable overrides ($primary, $border-radius, etc.) live in
+// main.scss, declared as true global variables immediately before Bootstrap
+// is imported. They can't live here: this file is consumed via `@use ... as
+// v`, which namespaces everything into `v.$primary` — Bootstrap's own
+// `!default` variables never see a namespaced value, so the override would
+// silently do nothing (as happened before this was moved — Bootstrap's
+// components rendered in its default blue regardless of our palette).

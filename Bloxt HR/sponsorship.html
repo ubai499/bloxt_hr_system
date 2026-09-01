@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Sponsor compliance workspace for Bloxt.">
+  <title>Sponsor Compliance Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Sponsor Compliance Workspace</h1>
+            <p class="page-subtitle">Restricted workspace for managing sponsored worker records and sponsor duties.</p>
+          </div>
+          <button class="btn btn-light-custom" id="openSmsBtn"><i class="bi bi-box-arrow-up-right"></i> Open Sponsor Management System</button>
+        </div>
+        <ul class="nav profile-tabs mt-4" id="sponsorTabs">
+          <li class="nav-item"><button class="nav-link active" data-tab="overview">Overview</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="workers">Sponsored Workers</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="events">Reporting Register</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="changes">Company Changes</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="guidance">Guidance References</button></li>
+        </ul>
+      </div>
+
+      <div class="app-content" id="sponsorContent"></div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="eventForm">
+          <div class="modal-header"><h2 class="modal-title h5">Record Sponsor Event</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Sponsored worker<span class="required-indicator">*</span></label><select class="form-select" name="employeeId" id="eventEmployeeSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Event type<span class="required-indicator">*</span></label><select class="form-select" name="eventType" id="eventTypeSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Date occurred</label><input type="date" class="form-control" name="dateOccurred"></div>
+              <div class="form-field"><label class="form-label">Date HR became aware</label><input type="date" class="form-control" name="dateAware"></div>
+              <div class="form-field"><label class="form-label">Assigned to</label><input class="form-control" name="assignedTo" value="Meera Iyer"></div>
+              <div class="form-field"><label class="form-label">Assessment status</label><select class="form-select" name="status" id="eventStatusSelect"></select></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Details</label><textarea class="form-control" name="details" rows="2" required></textarea></div>
+            <div class="mt-3 form-field"><label class="form-label">Internal notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Event</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script src="assets/js/sponsorship.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "sponsorship" });
+    if (!user) return;
+    if (!HR.auth.can("VIEW_IMMIGRATION")) {
+      document.getElementById("sponsorContent").innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-lock"></i></div><div class="empty-state-title">Access denied</div><div class="empty-state-text">Your role does not have permission to view sponsor compliance information.</div></div></div>`;
+      document.querySelectorAll("#sponsorTabs, #openSmsBtn").forEach((el) => el.remove());
+      return;
+    }
+    const db = HR.db, fmt = HR.format;
+    const params = new URLSearchParams(window.location.search);
+    const company = HR.company.get();
+
+    document.getElementById("openSmsBtn").addEventListener("click", () => {
+      HR.ui.confirmAction({
+        title: "Open Sponsor Management System",
+        body: `This will open the official Home Office Sponsor Management System in a new tab (${company.sponsorLicence.smsUrl}). This system does not integrate directly with SMS any updates must be made there separately.`,
+        confirmLabel: "Continue", confirmVariant: "primary"
+      }).then((ok) => { if (ok) window.open(company.sponsorLicence.smsUrl, "_blank", "noopener"); });
+    });
+
+    function sponsoredEmployees() { return db.employees.find((e) => e.sponsored); }
+
+    function tabOverview() {
+      const lic = company.sponsorLicence;
+      const sponsored = sponsoredEmployees();
+      const summaries = sponsored.map((e) => HR.sponsorshipHelpers.sponsoredWorkerSummary(e));
+      const actionRequired = summaries.filter((s) => s.overall === "Action Required").length;
+      const reviewRequired = summaries.filter((s) => s.overall === "Review Required").length;
+      return `
+        <div class="compliance-summary-strip">
+          <div class="summary-strip-item"><span class="summary-strip-value">${sponsored.length}</span><span class="summary-strip-label">Sponsored Workers</span></div>
+          <div class="summary-strip-item"><span class="summary-strip-value">${reviewRequired}</span><span class="summary-strip-label">Review Required</span></div>
+          <div class="summary-strip-item"><span class="summary-strip-value">${actionRequired}</span><span class="summary-strip-label">Action Required</span></div>
+          <div class="summary-strip-item"><span class="summary-strip-value">${lic.rating}</span><span class="summary-strip-label">Licence Rating</span></div>
+        </div>
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">Sponsor Licence Administration</div>${fmt.statusBadge(lic.status)}</div>
+              <div class="detail-grid">
+                <div class="detail-item"><dt>Licence reference</dt><dd>${lic.reference}</dd></div>
+                <div class="detail-item"><dt>Licence rating</dt><dd>${lic.rating}</dd></div>
+                <div class="detail-item"><dt>Licence start date</dt><dd>${fmt.date(lic.startDate)}</dd></div>
+                <div class="detail-item"><dt>Renewal review date</dt><dd>${fmt.date(lic.renewalReviewDate)}</dd></div>
+                <div class="detail-item"><dt>Worker routes</dt><dd>${lic.workerRoutes.join(", ")}</dd></div>
+                <div class="detail-item"><dt>Authorising officer</dt><dd>${lic.authorisingOfficer}</dd></div>
+                <div class="detail-item"><dt>Key contact</dt><dd>${lic.keyContact}</dd></div>
+                <div class="detail-item"><dt>Level 1 user</dt><dd>${lic.level1User}</dd></div>
+                <div class="detail-item"><dt>Level 2 users</dt><dd>${lic.level2Users.join(", ")}</dd></div>
+                <div class="detail-item"><dt>Org details last reviewed</dt><dd>${fmt.date(lic.orgDetailsLastReviewed)}</dd></div>
+                <div class="detail-item"><dt>Next internal review</dt><dd>${fmt.date(lic.nextInternalReviewDate)}</dd></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">Sponsored Worker Status</div></div>
+              ${summaries.length ? summaries.map((s, i) => `<div class="d-flex justify-content-between align-items-center py-2 border-bottom"><span class="small">${HR.employees.fullName(sponsored[i])}</span>${fmt.statusBadge(s.overall)}</div>`).join("") : `<p class="text-secondary-custom small mb-0">No sponsored workers currently recorded.</p>`}
+            </div>
+            <div class="disclaimer-note">
+              <i class="bi bi-info-circle"></i>
+              <span>This system supports the organisation's internal HR record-keeping and compliance processes. It does not replace the Home Office Sponsor Management System, professional immigration advice, or current sponsor guidance.</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function tabWorkers() {
+      return `<div class="table-panel">
+        <table class="table-app" id="workersTable" style="width:100%;">
+          <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>SOC Code</th><th>Salary</th><th>Right-to-Work</th><th>Contact Verified</th><th>Overall Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+    function wireWorkers() {
+      const sponsored = sponsoredEmployees();
+      HR.ui.initDataTable("#workersTable", {
+        data: sponsored,
+        order: [[0, "asc"]],
+        emptyIcon: "bi-shield-check",
+        emptyTitle: "No sponsored workers",
+        emptyText: "Sponsored worker records will appear here once created via the employee profile.",
+        columns: [
+          { data: null, className: "cell-primary", render: (row) => HR.employees.fullName(row) },
+          { data: "jobTitle" },
+          { data: null, render: (row) => HR.employees.departmentName(row.departmentId) },
+          { data: null, render: (row) => { const s = HR.sponsorshipHelpers.sponsoredWorkerSummary(row); return s.record ? s.record.socCode : "—"; } },
+          { data: null, render: (row) => { const s = HR.sponsorshipHelpers.sponsoredWorkerSummary(row); return s.record ? fmt.currency(s.record.annualSalary) : "—"; } },
+          { data: null, render: (row) => fmt.statusBadge(HR.sponsorshipHelpers.sponsoredWorkerSummary(row).rtwStatus) },
+          { data: null, render: (row) => HR.sponsorshipHelpers.sponsoredWorkerSummary(row).contactCurrent ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-exclamation-circle text-warning"></i>' },
+          { data: null, render: (row) => fmt.statusBadge(HR.sponsorshipHelpers.sponsoredWorkerSummary(row).overall) },
+          { data: "id", orderable: false, className: "text-end", render: (row) => `<a href="employee-profile.html?id=${row}&tab=sponsorship" class="btn btn-sm btn-light-custom">View</a>` }
+        ]
+      });
+    }
+
+    function tabEvents() {
+      return `<div class="table-panel">
+        <div class="table-toolbar"><div><span class="fw-semibold">Sponsor event &amp; reporting register</span></div>
+          <div class="table-toolbar-actions"><button class="btn btn-sm btn-primary" id="newEventBtn"><i class="bi bi-plus-lg"></i> Record Sponsor Event</button></div>
+        </div>
+        <table class="table-app" id="eventsTable" style="width:100%;">
+          <thead><tr><th>Worker</th><th>Event Type</th><th>Date Occurred</th><th>Details</th><th>Assigned To</th><th>Reported via SMS</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+    function wireEventsTable() {
+      HR.ui.initDataTable("#eventsTable", {
+        data: db.sponsorEvents.all(),
+        order: [[2, "desc"]],
+        emptyIcon: "bi-journal-check",
+        emptyTitle: "No sponsor events recorded",
+        emptyText: "Events that may require sponsor duty assessment will be logged here.",
+        columns: [
+          { data: null, render: (row) => { const e = db.employees.get(row.employeeId); return e ? HR.employees.fullName(e) : "—"; } },
+          { data: "eventType" },
+          { data: "dateOccurred", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "details", className: "cell-secondary" },
+          { data: "assignedTo" },
+          { data: null, render: (row) => row.reportedThroughSMS ? "Yes " + fmt.date(row.dateReported) : "No" },
+          { data: "status", render: (row) => fmt.statusBadge(row) }
+        ],
+        createdRow: (trEl, row) => { if (params.get("highlight") === row.id) trEl.classList.add("table-active"); }
+      });
+    }
+
+    function tabChanges() {
+      return `<div class="table-panel">
+        <table class="table-app" id="changesTable" style="width:100%;">
+          <thead><tr><th>Date</th><th>Change Type</th><th>Description</th><th>Sponsor Impact</th><th>Report Required</th><th>Reported</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+    function wireChanges() {
+      HR.ui.initDataTable("#changesTable", {
+        data: db.companyChanges.all(),
+        order: [[0, "desc"]],
+        emptyIcon: "bi-building",
+        emptyTitle: "No company changes recorded",
+        emptyText: "Significant company changes that may affect sponsor status will appear here.",
+        columns: [
+          { data: "date", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "changeType" },
+          { data: "description", className: "cell-secondary" },
+          { data: "potentialSponsorImpact" },
+          { data: "reportRequired", render: (row) => row ? "Yes" : "No" },
+          { data: null, render: (row) => row.reported ? fmt.date(row.reportedDate) : "Not yet" }
+        ]
+      });
+    }
+
+    function tabGuidance() {
+      return `<div class="table-panel">
+        <table class="table-app" id="guidanceTable" style="width:100%;">
+          <thead><tr><th>Title</th><th>Source</th><th>Last Reviewed</th><th>Reviewed By</th><th>Notes</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+    function wireGuidance() {
+      HR.ui.initDataTable("#guidanceTable", {
+        data: db.guidanceReferences.all(),
+        paging: false, info: false,
+        order: [[0, "asc"]],
+        emptyIcon: "bi-bookmark",
+        emptyTitle: "No guidance references saved",
+        emptyText: "Add links to authoritative guidance as they are reviewed.",
+        columns: [
+          { data: null, render: (row) => `<a href="${row.url}" target="_blank" rel="noopener">${row.title}</a>` },
+          { data: "source" },
+          { data: "lastReviewed", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "reviewedBy" },
+          { data: "notes", className: "cell-secondary", render: (row) => row || "—" }
+        ]
+      });
+    }
+
+    const RENDERERS = { overview: tabOverview, workers: tabWorkers, events: tabEvents, changes: tabChanges, guidance: tabGuidance };
+    const WIRERS = { workers: wireWorkers, events: () => { wireEventsTable(); wireEventModal(); }, changes: wireChanges, guidance: wireGuidance };
+
+    function activate(tab) {
+      document.querySelectorAll("#sponsorTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("sponsorContent").innerHTML = RENDERERS[tab]();
+      if (WIRERS[tab]) WIRERS[tab]();
+    }
+    document.querySelectorAll("#sponsorTabs .nav-link").forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
+
+    function wireEventModal() {
+      document.getElementById("eventEmployeeSelect").innerHTML = sponsoredEmployees().map((e) => `<option value="${e.id}">${HR.employees.fullName(e)}</option>`).join("");
+      document.getElementById("eventTypeSelect").innerHTML = HR.enums.SPONSOR_EVENT_TYPES.map((t) => `<option>${t}</option>`).join("");
+      document.getElementById("eventStatusSelect").innerHTML = HR.enums.SPONSOR_EVENT_STATUSES.map((s) => `<option>${s}</option>`).join("");
+      const modal = new bootstrap.Modal(document.getElementById("eventModal"));
+      function openModal() {
+        const form = document.getElementById("eventForm");
+        form.reset();
+        form.elements["dateOccurred"].valueAsDate = new Date();
+        form.elements["dateAware"].valueAsDate = new Date();
+        modal.show();
+      }
+      document.getElementById("newEventBtn").addEventListener("click", openModal);
+      if (params.get("new") === "1" && params.get("tab") === "events") openModal();
+      document.getElementById("eventForm").onsubmit = (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        db.sponsorEvents.create({
+          employeeId: data.employeeId, eventType: data.eventType, dateOccurred: data.dateOccurred, dateAware: data.dateAware,
+          details: data.details, requiresAssessment: true, reportingDeadline: null, assignedTo: data.assignedTo,
+          reportedThroughSMS: false, dateReported: null, reportedBy: null, evidenceRef: null, notes: data.notes || "", status: data.status
+        });
+        HR.audit.log({ employeeId: data.employeeId, action: "Sponsor event recorded", module: "Sponsorship", description: `${data.eventType} recorded for assessment.` });
+        modal.hide();
+        HR.ui.toastSuccess("Sponsor event saved", "The event has been added to the reporting register.");
+        activate("events");
+      };
+    }
+
+    activate(params.get("tab") === "events" ? "events" : "overview");
+  });
+  </script>
+</body>
+</html>

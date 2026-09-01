@@ -1,0 +1,21 @@
+{
+  "name": "bloxt-hr",
+  "version": "1.0.0",
+  "description": "Bloxt HR & Employee Compliance Management System - frontend prototype",
+  "private": true,
+  "scripts": {
+    "build:css": "sass --no-source-map --quiet-deps --style=expanded assets/scss/main.scss assets/css/main.css",
+    "watch:css": "sass --no-source-map --quiet-deps --watch assets/scss/main.scss assets/css/main.css"
+  },
+  "devDependencies": {
+    "sass": "^1.77.0"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "chart.js": "^4.5.1",
+    "datatables.net-bs5": "^3.0.3",
+    "datatables.net-responsive-bs5": "^4.0.2",
+    "jquery": "^4.0.0"
+  }
+}

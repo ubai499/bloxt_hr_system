@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Central document library for Bloxt.">
+  <title>Documents Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Documents</h1>
+            <p class="page-subtitle">Central library of employee and company documents, with expiry and retention tracking.</p>
+          </div>
+          <button class="btn btn-primary" id="newDocBtn"><i class="bi bi-cloud-upload"></i> Upload Document</button>
+        </div>
+      </div>
+      <div class="app-content">
+        <div class="kpi-grid mb-4" id="docKpiRow"></div>
+
+        <div class="table-panel">
+          <div class="table-toolbar">
+            <div class="table-toolbar-search"><i class="bi bi-search"></i><input type="search" class="form-control" id="docSearch" placeholder="Search document title…"></div>
+            <div class="table-toolbar-filters">
+              <select class="form-select form-select-sm" id="docCategoryFilter" style="width:auto;"><option value="all">All categories</option></select>
+              <select class="form-select form-select-sm" id="docStatusFilter" style="width:auto;"><option value="all">All statuses</option></select>
+              <select class="form-select form-select-sm" id="docEmployeeFilter" style="width:auto;"><option value="all">All employees</option></select>
+            </div>
+            <div class="table-toolbar-actions"><button class="btn btn-sm btn-light-custom" id="exportDocBtn"><i class="bi bi-download"></i> Export</button></div>
+          </div>
+          <table class="table-app" id="documentsTable" style="width:100%;">
+            <thead><tr><th>Document</th><th>Category</th><th>Employee</th><th>Issue Date</th><th>Expiry Date</th><th>Status</th><th>Classification</th><th>Uploaded By</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="docModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="docForm">
+          <div class="modal-header"><h2 class="modal-title h5">Upload Document</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Document title<span class="required-indicator">*</span></label><input class="form-control" name="title" required></div>
+              <div class="form-field"><label class="form-label">Employee</label><select class="form-select" name="employeeId" id="docEmployeeSelect"><option value="">Company-wide (not employee-specific)</option></select></div>
+              <div class="form-field"><label class="form-label">Category</label><select class="form-select" name="category" id="docCategorySelect"></select></div>
+              <div class="form-field"><label class="form-label">Access classification</label><select class="form-select" name="accessClassification" id="docClassSelect"></select></div>
+              <div class="form-field"><label class="form-label">Issue date</label><input type="date" class="form-control" name="issueDate"></div>
+              <div class="form-field"><label class="form-label">Expiry date</label><input type="date" class="form-control" name="expiryDate"></div>
+            </div>
+            <fieldset class="form-fieldset mt-3 mb-0">
+              <legend class="form-legend h6">Retention metadata</legend>
+              <div class="form-grid-2">
+                <div class="form-field"><label class="form-label">Retention category</label><select class="form-select" name="retentionCategory"><option>Standard (6 years)</option><option>Immigration record (statutory)</option><option>Payroll (6 years)</option><option>Permanent</option></select></div>
+                <div class="form-field"><label class="form-label">Retention until</label><input type="date" class="form-control" name="retentionUntil"></div>
+              </div>
+              <div class="mt-3 form-field"><label class="form-label">Legal / compliance basis</label><input class="form-control" name="retentionReason" placeholder="e.g. Right-to-work record retention duty"></div>
+            </fieldset>
+            <div class="mt-3 form-field"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Document</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script src="assets/js/documents.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const user = HR.nav.mount({ active: params.get("category") === "Employment Contract" ? "contracts" : "documents" });
+    if (!user) return;
+    const db = HR.db, fmt = HR.format;
+    const myEmployee = HR.auth.employeeRecordFor(user);
+    const selfService = user.role === HR.enums.ROLES.EMPLOYEE;
+
+    function scopedDocs() {
+      let rows = db.documents.all();
+      if (selfService) rows = rows.filter((d) => d.employeeId === (myEmployee ? myEmployee.id : null));
+      return rows;
+    }
+
+    function renderKpis() {
+      const rows = scopedDocs();
+      const expired = rows.filter((d) => HR.compliance.documentStatus(d) === "Expired").length;
+      const rowIds = new Set(rows.map((d) => d.id));
+      const expiring30 = HR.documentHelpers.expiringWithin(30).filter((d) => rowIds.has(d.id)).length;
+      const reviewDue = rows.filter((d) => HR.compliance.documentStatus(d) === "Review Due").length;
+      document.getElementById("docKpiRow").innerHTML = [
+        ["Total Documents", rows.length, "primary"], ["Expiring Within 30 Days", expiring30, expiring30 ? "warning" : "neutral"],
+        ["Expired", expired, expired ? "danger" : "neutral"], ["Review Due", reviewDue, reviewDue ? "warning" : "neutral"]
+      ].map(([l, v, a]) => `<div class="metric-card metric-accent-${a}"><span class="metric-label">${l}</span><span class="metric-value">${v}</span></div>`).join("");
+    }
+    renderKpis();
+
+    document.getElementById("docCategoryFilter").innerHTML += HR.enums.DOCUMENT_CATEGORIES.map((c) => `<option value="${c}" ${params.get("category") === c ? "selected" : ""}>${c}</option>`).join("");
+    document.getElementById("docStatusFilter").innerHTML += HR.enums.DOCUMENT_STATUSES.map((s) => `<option>${s}</option>`).join("");
+    if (!selfService) document.getElementById("docEmployeeFilter").innerHTML += db.employees.all().map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+    else document.getElementById("docEmployeeFilter").classList.add("d-none");
+
+    const docsTable = HR.ui.initDataTable("#documentsTable", {
+      data: scopedDocs(),
+      order: [[4, "asc"]],
+      emptyIcon: "bi-folder2-open",
+      emptyTitle: "No documents match these filters",
+      emptyText: "No documents expire within the selected period, or none match your search.",
+      columns: [
+        { data: null, render: (row, type) => type === "display" ? `<div class="d-flex align-items-center gap-2"><span class="doc-icon" style="width:32px;height:32px;font-size:.9rem;"><i class="bi bi-file-earmark-text"></i></span><span class="cell-primary">${row.title}</span></div>` : row.title },
+        { data: "category" },
+        { data: null, render: (row) => { const e = row.employeeId ? db.employees.get(row.employeeId) : null; return e ? e.firstName + " " + e.lastName : "Company-wide"; } },
+        { data: "issueDate", render: (row, type) => row ? (type === "display" ? fmt.date(row) : row) : "—" },
+        { data: "expiryDate", render: (row, type) => row ? (type === "display" ? fmt.date(row) : row) : (type === "display" ? "N/A" : "9999-99-99") },
+        { data: null, render: (row) => fmt.statusBadge(HR.compliance.documentStatus(row)) },
+        { data: "accessClassification", render: (row) => `<span class="data-classification-tag classification-${row.toLowerCase().replace(/ /g, "-")}">${row}</span>` },
+        { data: "uploadedBy", className: "cell-secondary" }
+      ],
+      createdRow: (trEl, row) => { if (params.get("highlight") === row.id) trEl.classList.add("table-active"); }
+    });
+
+    const docFilters = HR.ui.createFilterState(docsTable, "documentsTable");
+    document.getElementById("docSearch").addEventListener("input", (e) => docsTable.search(e.target.value).draw());
+    document.getElementById("docCategoryFilter").addEventListener("change", (e) => docFilters.set("category", e.target.value === "all" ? null : (row) => row.category === e.target.value));
+    if (params.get("category")) { document.getElementById("docCategoryFilter").value = params.get("category"); docFilters.set("category", (row) => row.category === params.get("category")); }
+    document.getElementById("docStatusFilter").addEventListener("change", (e) => docFilters.set("status", e.target.value === "all" ? null : (row) => HR.compliance.documentStatus(row) === e.target.value));
+    document.getElementById("docEmployeeFilter").addEventListener("change", (e) => docFilters.set("employee", e.target.value === "all" ? null : (row) => row.employeeId === e.target.value));
+    document.getElementById("exportDocBtn").addEventListener("click", () => {
+      const rows = docsTable.rows({ search: "applied" }).data().toArray();
+      HR.ui.exportCsv("documents.csv", ["Title", "Category", "Employee", "Issue Date", "Expiry Date", "Status", "Classification"],
+        rows.map((d) => { const e = d.employeeId ? db.employees.get(d.employeeId) : null; return [d.title, d.category, e ? e.firstName + " " + e.lastName : "Company-wide", d.issueDate || "", d.expiryDate || "", HR.compliance.documentStatus(d), d.accessClassification]; }));
+    });
+
+    // Upload modal ------------------------------------------------------------------
+    document.getElementById("docEmployeeSelect").innerHTML += db.employees.all().map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+    document.getElementById("docCategorySelect").innerHTML = HR.enums.DOCUMENT_CATEGORIES.map((c) => `<option>${c}</option>`).join("");
+    document.getElementById("docClassSelect").innerHTML = HR.enums.DATA_CLASSIFICATIONS.map((c) => `<option>${c}</option>`).join("");
+    const docModal = new bootstrap.Modal(document.getElementById("docModal"));
+    document.getElementById("newDocBtn").addEventListener("click", () => { document.getElementById("docForm").reset(); docModal.show(); });
+    if (params.get("new") === "1") docModal.show();
+
+    document.getElementById("docForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const data = Object.fromEntries(fd.entries());
+      db.documents.create({
+        employeeId: data.employeeId || null, title: data.title, category: data.category, issueDate: data.issueDate || null,
+        expiryDate: data.expiryDate || null, uploadedBy: user.name, uploadDate: HR.util.nowISO().slice(0, 10),
+        reviewDate: null, status: "Valid", notes: data.notes || "", version: 1, accessClassification: data.accessClassification,
+        retentionCategory: data.retentionCategory, retentionUntil: data.retentionUntil || null, retentionReason: data.retentionReason || null, archiveStatus: "Active"
+      });
+      HR.audit.log({ employeeId: data.employeeId || null, action: "Document uploaded", module: "Documents", description: `${data.title} uploaded to the document library.` });
+      docModal.hide();
+      HR.ui.toastSuccess("Document saved", `${data.title} has been added to the library.`);
+      docsTable.clear().rows.add(scopedDocs()).draw();
+      renderKpis();
+    });
+  });
+  </script>
+</body>
+</html>

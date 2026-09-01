@@ -1,0 +1,152 @@
+@use "../abstracts/variables" as v;
+@use "../abstracts/mixins" as m;
+
+.table-panel {
+  @include m.card-surface;
+  overflow: hidden;
+}
+
+.table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: v.$space-3;
+  padding: v.$space-4 v.$space-5;
+  border-bottom: 1px solid v.$color-border;
+
+  .table-toolbar-search {
+    position: relative;
+    flex: 1 1 240px;
+    max-width: 320px;
+
+    i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: v.$color-text-muted; }
+    input { padding-left: 34px; }
+  }
+
+  .table-toolbar-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: v.$space-2;
+    flex: 1 1 auto;
+  }
+
+  .table-toolbar-actions {
+    display: flex;
+    gap: v.$space-2;
+    margin-left: auto;
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+  @include m.scrollbar-thin;
+}
+
+.table-app {
+  width: 100%;
+  margin-bottom: 0;
+  font-size: v.$fs-table;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    background: v.$color-bg;
+    color: v.$color-text-secondary;
+    font-weight: v.$fw-semibold;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    padding: 0.7rem v.$space-4;
+    border-bottom: 1px solid v.$color-border;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    &.sortable {
+      cursor: pointer;
+      user-select: none;
+
+      &:hover { color: v.$color-text; }
+
+      .sort-icon { margin-left: 4px; opacity: 0.5; font-size: 0.7rem; }
+      &.sort-active .sort-icon { opacity: 1; color: v.$color-secondary; }
+    }
+  }
+
+  tbody td {
+    padding: 0.7rem v.$space-4;
+    border-bottom: 1px solid v.$color-border;
+    color: v.$color-text;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  tbody tr.is-clickable { cursor: pointer; }
+  tbody tr:hover { background-color: rgba(107, 107, 36, 0.035); }
+
+  .cell-primary { font-weight: v.$fw-medium; color: v.$color-text; }
+  .cell-secondary { color: v.$color-text-secondary; font-size: v.$fs-meta; }
+}
+
+.table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-3;
+  padding: v.$space-3 v.$space-5;
+  border-top: 1px solid v.$color-border;
+  font-size: v.$fs-meta;
+  color: v.$color-text-secondary;
+}
+
+.employee-cell {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+}
+
+// Mobile record cards (table -> card transform) --------------------------------
+.record-card-list { display: none; }
+
+@include m.respond-down(md) {
+  .table-responsive-cards {
+    .table-scroll { display: none; }
+    .record-card-list { display: block; }
+  }
+}
+
+.record-card {
+  @include m.card-surface;
+  padding: v.$space-4;
+  margin-bottom: v.$space-3;
+
+  .record-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: v.$space-2;
+    margin-bottom: v.$space-3;
+  }
+
+  .record-card-row {
+    display: flex;
+    justify-content: space-between;
+    gap: v.$space-3;
+    padding: 4px 0;
+    font-size: v.$fs-body;
+
+    dt { color: v.$color-text-secondary; font-weight: v.$fw-regular; }
+    dd { margin: 0; font-weight: v.$fw-medium; text-align: right; }
+  }
+
+  .record-card-actions {
+    margin-top: v.$space-3;
+    padding-top: v.$space-3;
+    border-top: 1px solid v.$color-border;
+    display: flex;
+    gap: v.$space-2;
+  }
+}

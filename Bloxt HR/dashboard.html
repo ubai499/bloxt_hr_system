@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Workforce and compliance overview for Bloxt.">
+  <title>Dashboard Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+
+      <div class="page-header-bar">
+        <div class="greeting-header">
+          <div>
+            <h1 class="page-title" id="greetingTitle">Good morning</h1>
+            <p class="page-subtitle" id="greetingSubtitle">Overview of your workforce and compliance activity.</p>
+          </div>
+          <span class="text-meta" id="todayLabel"></span>
+        </div>
+      </div>
+
+      <div class="app-content" id="dashboardContent">
+        <div class="text-center py-5 text-secondary-custom">Loading dashboard…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/chart.umd.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "dashboard" });
+    if (!user) return;
+
+    const db = HR.db;
+    const fmt = HR.format;
+    const ROLES = HR.enums.ROLES;
+
+    document.getElementById("todayLabel").textContent = fmt.date(new Date().toISOString());
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    document.getElementById("greetingTitle").textContent = `${greeting}, ${user.name.split(" ")[0]}`;
+
+    const content = document.getElementById("dashboardContent");
+
+    function metricCard(label, value, context, accent, icon) {
+      return `<div class="metric-card metric-accent-${accent}">
+        <span class="metric-icon"><i class="bi ${icon}"></i></span>
+        <span class="metric-label">${label}</span>
+        <span class="metric-value">${value}</span>
+        <span class="metric-context">${context || ""}</span>
+      </div>`;
+    }
+
+    function actionCentreHtml(items, limit) {
+      if (!items.length) {
+        return `<div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-check2-circle"></i></div>
+          <div class="empty-state-title">No immediate action required</div>
+          <div class="empty-state-text">All monitored employee records are up to date. New items will appear here automatically.</div>
+        </div>`;
+      }
+      const priorityClass = { High: "priority-dot-high", Medium: "priority-dot-medium", Low: "priority-dot-low" };
+      return items.slice(0, limit || items.length).map((item) => `
+        <div class="action-item">
+          <span class="action-priority-dot ${priorityClass[item.priority]}"></span>
+          <div class="action-body">
+            <div class="action-title">${fmt.escapeHtml(item.issue)}</div>
+            <div class="action-meta">
+              <span><i class="bi bi-person"></i> ${fmt.escapeHtml(item.employee)}</span>
+              ${item.dueDate ? `<span><i class="bi bi-calendar-event"></i> Due ${fmt.date(item.dueDate)}</span>` : ""}
+              <span><i class="bi bi-person-check"></i> ${fmt.escapeHtml(item.responsible || "Unassigned")}</span>
+            </div>
+          </div>
+          <a href="${item.href}" class="btn btn-sm btn-light-custom">Review</a>
+        </div>`).join("");
+    }
+
+    function recentActivityHtml(limit) {
+      const events = db.auditLog.all().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, limit);
+      if (!events.length) return `<p class="text-secondary-custom small mb-0">No recent activity recorded.</p>`;
+      return `<div class="timeline">` + events.map((ev) => `
+        <div class="timeline-item">
+          <div class="timeline-date">${fmt.date(ev.timestamp)}</div>
+          <div class="timeline-title">${fmt.escapeHtml(ev.action)}${ev.employeeId ? " " + fmt.escapeHtml((db.employees.get(ev.employeeId) || {}).firstName || "") + " " + fmt.escapeHtml((db.employees.get(ev.employeeId) || {}).lastName || "") : ""}</div>
+          <div class="timeline-by">by ${fmt.escapeHtml(ev.userName || "System")}</div>
+        </div>`).join("") + `</div>`;
+    }
+
+    function upcomingEventsHtml(limit) {
+      const events = HR.compliance.getCalendarEvents()
+        .filter((e) => fmt.daysUntil(e.date) !== null && fmt.daysUntil(e.date) >= 0)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, limit);
+      if (!events.length) return `<p class="text-secondary-custom small mb-0">No compliance events are scheduled in the near term.</p>`;
+      return events.map((e) => `
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+          <div>
+            <div class="fw-medium small">${fmt.escapeHtml(e.label)}</div>
+            <div class="text-meta">${fmt.escapeHtml(e.type)}</div>
+          </div>
+          <span class="status-badge badge-${e.tone}">${fmt.date(e.date)}</span>
+        </div>`).join("");
+    }
+
+    // ---------------------------------------------------------------------------
+    function renderHrWideDashboard() {
+      const employees = db.employees.find((e) => e.status !== "Left");
+      const activeEmployees = employees.filter((e) => e.status === "Active");
+      const today = new Date().toISOString().slice(0, 10);
+      const todaysAttendance = db.attendance.find((a) => a.date === today);
+      const absentToday = todaysAttendance.filter((a) => ["Sick", "Unauthorised Absence", "Authorised Absence"].includes(a.status)).length;
+      const onLeaveToday = db.leaveRequests.find((l) => l.status === "Approved" && l.from <= today && l.to >= today).length;
+      const docsExpiring = db.documents.find((d) => ["Expiring Soon", "Expired"].includes(HR.compliance.documentStatus(d))).length;
+      const docsExpiring30 = db.documents.find((d) => d.expiryDate && fmt.daysUntil(d.expiryDate) >= 0 && fmt.daysUntil(d.expiryDate) <= 30).length;
+      const rtwDue = employees.filter((e) => {
+        const c = HR.compliance.latestRtwCheck(e.id);
+        return c && ["Review Due", "Expiring Soon", "Follow-up Required", "Expired"].includes(HR.compliance.rtwStatus(c));
+      });
+      const rtwDue30 = rtwDue.filter((e) => {
+        const c = HR.compliance.latestRtwCheck(e.id);
+        return c.permissionExpiry && fmt.daysUntil(c.permissionExpiry) <= 30;
+      }).length;
+      const sponsoredCount = employees.filter((e) => e.sponsored).length;
+      const actionItems = HR.compliance.getActionCentreItems();
+
+      content.innerHTML = `
+        <div class="kpi-grid mb-5">
+          ${metricCard("Total Employees", employees.length, "Across 8 departments", "primary", "bi-people")}
+          ${metricCard("Active Employees", activeEmployees.length, `${employees.length - activeEmployees.length} on leave or probation`, "success", "bi-person-check")}
+          ${metricCard("Absent Today", absentToday, absentToday ? "Requires manager review" : "No unexplained absence", absentToday ? "danger" : "neutral", "bi-clipboard-x")}
+          ${metricCard("On Leave Today", onLeaveToday, "Approved leave in progress", "info", "bi-airplane")}
+          ${metricCard("Documents Expiring Soon", docsExpiring, `${docsExpiring30} within 30 days`, docsExpiring ? "warning" : "neutral", "bi-file-earmark-text")}
+          ${metricCard("Right-to-Work Checks Due", rtwDue.length, `${rtwDue30} within 30 days`, rtwDue.length ? "warning" : "neutral", "bi-patch-check")}
+          ${metricCard("Sponsored Workers", sponsoredCount, "Skilled Worker route", "accent", "bi-shield-check")}
+          ${metricCard("Outstanding HR Actions", actionItems.length, actionItems.length ? "See action centre below" : "Nothing outstanding", actionItems.length ? "danger" : "neutral", "bi-list-check")}
+        </div>
+
+        <div class="dashboard-columns">
+          <div>
+            <div class="panel mb-5">
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">Action Required</div>
+                  <div class="panel-desc">Items identified from current employee, document and compliance records.</div>
+                </div>
+                <a href="reports.html?tab=tasks" class="btn btn-sm btn-light-custom">View all tasks</a>
+              </div>
+              ${actionCentreHtml(actionItems, 6)}
+            </div>
+
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="panel">
+                  <div class="panel-header"><div class="panel-title">Employees by Department</div></div>
+                  <div class="chart-wrap"><canvas id="chartDept"></canvas></div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="panel">
+                  <div class="panel-header"><div class="panel-title">Today's Attendance Summary</div></div>
+                  <div class="chart-wrap"><canvas id="chartAttendance"></canvas></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel mb-4">
+              <div class="panel-header">
+                <div class="panel-title">Upcoming Compliance Events</div>
+                <a href="compliance.html?tab=calendar" class="btn btn-sm btn-ghost">Full calendar</a>
+              </div>
+              ${upcomingEventsHtml(5)}
+            </div>
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Recent Activity</div></div>
+              ${recentActivityHtml(6)}
+            </div>
+          </div>
+        </div>`;
+
+      const deptCounts = {};
+      employees.forEach((e) => {
+        const dept = (db.departments.get(e.departmentId) || {}).name || "Unassigned";
+        deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+      });
+      new Chart(document.getElementById("chartDept"), {
+        type: "bar",
+        data: { labels: Object.keys(deptCounts), datasets: [{ data: Object.values(deptCounts), backgroundColor: "#6B6B24", borderRadius: 4, maxBarThickness: 28 }] },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, maintainAspectRatio: false }
+      });
+
+      const statusCounts = {};
+      todaysAttendance.forEach((a) => { statusCounts[a.status] = (statusCounts[a.status] || 0) + 1; });
+      const notRecorded = employees.length - todaysAttendance.length;
+      if (notRecorded > 0) statusCounts["Not yet recorded"] = notRecorded;
+      new Chart(document.getElementById("chartAttendance"), {
+        type: "doughnut",
+        data: {
+          labels: Object.keys(statusCounts),
+          datasets: [{ data: Object.values(statusCounts), backgroundColor: ["#287A52", "#6B6B24", "#B7791F", "#B83A3A", "#8994A3", "#B6B247", "#3169A8"] }]
+        },
+        options: { plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } }, maintainAspectRatio: false }
+      });
+    }
+
+    // ---------------------------------------------------------------------------
+    function renderManagerDashboard() {
+      const emp = HR.auth.employeeRecordFor(user);
+      const team = db.employees.find((e) => e.managerId === (emp ? emp.id : null) && e.status !== "Left");
+      const today = new Date().toISOString().slice(0, 10);
+      const teamAttendanceToday = db.attendance.find((a) => a.date === today && team.some((t) => t.id === a.employeeId));
+      const away = teamAttendanceToday.filter((a) => a.status !== "Present" && a.status !== "Office" && a.status !== "Remote");
+      const working = teamAttendanceToday.filter((a) => a.status === "Present" || a.status === "Office" || a.status === "Remote");
+      const pendingLeave = db.leaveRequests.find((l) => l.status === "Pending" && team.some((t) => t.id === l.employeeId));
+      const probations = team.filter((t) => t.probationEndDate && fmt.daysUntil(t.probationEndDate) >= 0 && fmt.daysUntil(t.probationEndDate) <= 45);
+
+      content.innerHTML = `
+        <div class="kpi-grid mb-5">
+          ${metricCard("My Team", team.length, "Direct reports", "primary", "bi-people")}
+          ${metricCard("Working Today", working.length, "Present, office or remote", "success", "bi-person-check")}
+          ${metricCard("Away Today", away.length, away.length ? "Review attendance" : "No absence recorded", away.length ? "warning" : "neutral", "bi-clipboard-x")}
+          ${metricCard("Pending Leave Requests", pendingLeave.length, pendingLeave.length ? "Awaiting your decision" : "Nothing pending", pendingLeave.length ? "warning" : "neutral", "bi-airplane")}
+        </div>
+        <div class="dashboard-columns">
+          <div>
+            <div class="panel mb-4">
+              <div class="panel-header">
+                <div class="panel-title">Who's Working Today</div>
+                <a href="attendance.html" class="btn btn-sm btn-light-custom">Open attendance</a>
+              </div>
+              ${team.length === 0 ? `<div class="empty-state"><div class="empty-state-icon"><i class="bi bi-people"></i></div><div class="empty-state-title">No direct reports assigned</div></div>` :
+                team.map((t) => {
+                  const att = teamAttendanceToday.find((a) => a.employeeId === t.id);
+                  return `<div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div class="employee-cell"><span class="avatar-circle">${fmt.initials(t.firstName, t.lastName)}</span>
+                      <div><div class="fw-medium small">${t.firstName} ${t.lastName}</div><div class="text-meta">${t.jobTitle}</div></div>
+                    </div>
+                    ${fmt.statusBadge(att ? att.status : "Not recorded")}
+                  </div>`;
+                }).join("")}
+            </div>
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Probation Reviews Due</div></div>
+              ${probations.length ? probations.map((p) => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                  <span class="small">${p.firstName} ${p.lastName}</span>
+                  <span class="text-meta">${fmt.date(p.probationEndDate)}</span>
+                </div>`).join("") : `<p class="text-secondary-custom small mb-0">No probation reviews due in the next 45 days.</p>`}
+            </div>
+          </div>
+          <div>
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">Leave Requests</div><a href="leave.html" class="btn btn-sm btn-ghost">Open leave</a></div>
+              ${pendingLeave.length ? pendingLeave.map((l) => {
+                const e = db.employees.get(l.employeeId);
+                return `<div class="py-2 border-bottom">
+                  <div class="fw-medium small">${e.firstName} ${e.lastName} ${l.leaveType}</div>
+                  <div class="text-meta">${fmt.date(l.from)} – ${fmt.date(l.to)}</div>
+                </div>`;
+              }).join("") : `<p class="text-secondary-custom small mb-0">No pending requests from your team.</p>`}
+            </div>
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Recent Activity</div></div>
+              ${recentActivityHtml(5)}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ---------------------------------------------------------------------------
+    function renderEmployeeDashboard() {
+      const emp = HR.auth.employeeRecordFor(user);
+      if (!emp) { content.innerHTML = `<div class="empty-state"><div class="empty-state-title">No employee record linked to this account.</div></div>`; return; }
+      const myLeave = db.leaveRequests.find((l) => l.employeeId === emp.id).sort((a, b) => new Date(b.requestedDate) - new Date(a.requestedDate));
+      const myDocs = db.documents.find((d) => d.employeeId === emp.id);
+      const myAcks = db.policyAcknowledgements.find((a) => a.employeeId === emp.id && a.status === "Outstanding");
+      const remaining = emp.leaveAllowance - emp.leaveTakenDays - emp.leaveBookedDays;
+
+      content.innerHTML = `
+        <div class="kpi-grid mb-5">
+          ${metricCard("Leave Allowance", emp.leaveAllowance + " days", "Annual entitlement", "primary", "bi-airplane")}
+          ${metricCard("Leave Remaining", remaining + " days", `${emp.leaveTakenDays} taken, ${emp.leaveBookedDays} booked`, "success", "bi-calendar-check")}
+          ${metricCard("My Documents", myDocs.length, "On file with HR", "info", "bi-folder2-open")}
+          ${metricCard("Policies to Acknowledge", myAcks.length, myAcks.length ? "Action needed" : "All up to date", myAcks.length ? "warning" : "neutral", "bi-clipboard-check")}
+        </div>
+        <div class="dashboard-columns">
+          <div>
+            <div class="panel mb-4">
+              <div class="panel-header"><div class="panel-title">My Leave Requests</div><a href="leave.html" class="btn btn-sm btn-light-custom">Request leave</a></div>
+              ${myLeave.length ? myLeave.map((l) => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                  <div><div class="fw-medium small">${l.leaveType}</div><div class="text-meta">${fmt.date(l.from)} – ${fmt.date(l.to)}</div></div>
+                  ${fmt.statusBadge(l.status)}
+                </div>`).join("") : `<p class="text-secondary-custom small mb-0">You have not submitted any leave requests.</p>`}
+            </div>
+            ${myAcks.length ? `<div class="panel">
+              <div class="panel-header"><div class="panel-title">Outstanding Policy Acknowledgements</div></div>
+              ${myAcks.map((a) => { const p = db.policies.get(a.policyId); return `<div class="d-flex justify-content-between align-items-center py-2 border-bottom"><span class="small">${p ? p.name : "Policy"} (v${a.policyVersion})</span><a href="documents.html?category=Policies" class="btn btn-sm btn-outline-primary">Review</a></div>`; }).join("")}
+            </div>` : ""}
+          </div>
+          <div>
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">My Recent Activity</div></div>
+              ${HR.audit.forEmployee(emp.id).slice(0, 6).length ? (function () {
+                const events = HR.audit.forEmployee(emp.id).slice(0, 6);
+                return `<div class="timeline">` + events.map((ev) => `
+                  <div class="timeline-item"><div class="timeline-date">${fmt.date(ev.timestamp)}</div><div class="timeline-title">${fmt.escapeHtml(ev.action)}</div><div class="timeline-by">by ${fmt.escapeHtml(ev.userName || "System")}</div></div>`).join("") + `</div>`;
+              })() : `<p class="text-secondary-custom small mb-0">No recent activity on your record.</p>`}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    if ([ROLES.MANAGER].includes(user.role)) {
+      renderManagerDashboard();
+    } else if (user.role === ROLES.EMPLOYEE) {
+      renderEmployeeDashboard();
+    } else {
+      renderHrWideDashboard();
+    }
+  });
+  </script>
+</body>
+</html>

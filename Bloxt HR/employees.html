@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Employee directory for Bloxt.">
+  <title>Employees Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Employees</h1>
+            <p class="page-subtitle">Directory, departments and organisation records.</p>
+          </div>
+          <div class="d-flex gap-2" id="employeeHeaderActions"></div>
+        </div>
+        <ul class="nav profile-tabs mt-4" id="employeeTabs">
+          <li class="nav-item"><button class="nav-link active" data-tab="directory">Directory</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="departments">Departments</button></li>
+        </ul>
+      </div>
+
+      <div class="app-content">
+        <section id="tab-directory">
+          <div class="table-panel">
+            <div class="table-toolbar">
+              <div class="table-toolbar-search">
+                <i class="bi bi-search"></i>
+                <input type="search" class="form-control" id="empSearch" placeholder="Search name, ID, email, job title…">
+              </div>
+              <div class="table-toolbar-filters">
+                <select class="form-select form-select-sm" id="filterDept" style="width:auto;"><option value="all">All departments</option></select>
+                <select class="form-select form-select-sm" id="filterStatus" style="width:auto;"><option value="all">All statuses</option></select>
+                <select class="form-select form-select-sm" id="filterLocation" style="width:auto;"><option value="all">All locations</option></select>
+                <select class="form-select form-select-sm" id="filterType" style="width:auto;"><option value="all">All employment types</option></select>
+                <div class="form-check ms-2 d-flex align-items-center">
+                  <input class="form-check-input me-1" type="checkbox" id="filterSponsored">
+                  <label class="form-check-label small" for="filterSponsored">Sponsored only</label>
+                </div>
+              </div>
+              <div class="table-toolbar-actions">
+                <button class="btn btn-sm btn-light-custom" id="exportEmployeesBtn"><i class="bi bi-download"></i> Export</button>
+                <a class="btn btn-sm btn-primary" href="employee-add.html"><i class="bi bi-person-plus"></i> Add Employee</a>
+              </div>
+            </div>
+            <table class="table-app is-clickable" id="employeeTable" style="width:100%;">
+              <thead>
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Employee</th>
+                  <th>Job Title</th>
+                  <th>Department</th>
+                  <th>Manager</th>
+                  <th>Employment Type</th>
+                  <th>Work Location</th>
+                  <th>Start Date</th>
+                  <th>Status</th>
+                  <th>Right-to-Work</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="tab-departments" class="d-none">
+          <div class="table-panel">
+            <div class="table-toolbar">
+              <div><span class="fw-semibold">Company departments</span></div>
+              <div class="table-toolbar-actions">
+                <button class="btn btn-sm btn-primary" id="addDeptBtn"><i class="bi bi-plus-lg"></i> Add Department</button>
+              </div>
+            </div>
+            <table class="table-app" id="departmentTable" style="width:100%;">
+              <thead><tr><th>Department</th><th>Headcount</th><th>Status</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / edit department modal -->
+  <div class="modal fade" id="deptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="deptForm">
+          <div class="modal-header"><h2 class="modal-title h5">Add Department</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <input type="hidden" name="id">
+            <div class="mb-3 form-field">
+              <label class="form-label" for="deptName">Department name<span class="required-indicator">*</span></label>
+              <input type="text" class="form-control" id="deptName" name="name" required>
+              <div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a department name.</span></div>
+            </div>
+            <div class="mb-1 form-field">
+              <label class="form-label" for="deptStatus">Status</label>
+              <select class="form-select" id="deptStatus" name="status"><option>Active</option><option>Inactive</option></select>
+            </div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Department</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const user = HR.nav.mount({ active: params.get("tab") === "departments" ? "departments" : "employees" });
+    if (!user) return;
+    const db = HR.db, fmt = HR.format, ROLES = HR.enums.ROLES;
+    const canEdit = HR.auth.can("EDIT_EMPLOYEE");
+
+    document.getElementById("employeeHeaderActions").innerHTML = canEdit
+      ? `<a href="employee-add.html" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Employee</a>`
+      : "";
+
+    // Tabs -------------------------------------------------------------------
+    function activateTab(tab) {
+      document.querySelectorAll("#employeeTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("tab-directory").classList.toggle("d-none", tab !== "directory");
+      document.getElementById("tab-departments").classList.toggle("d-none", tab !== "departments");
+      if (tab === "departments") deptTable.columns.adjust();
+      else empTable.columns.adjust();
+    }
+
+    // Scope employees by role -------------------------------------------------
+    function scopedEmployees() {
+      let rows = db.employees.find((e) => e.status !== "Left" || true);
+      if (user.role === ROLES.MANAGER) {
+        const emp = HR.auth.employeeRecordFor(user);
+        rows = HR.employees.directRatingsForManager(emp ? emp.id : null);
+      }
+      return rows;
+    }
+
+    // Populate filter dropdowns -------------------------------------------------
+    const depts = db.departments.all();
+    document.getElementById("filterDept").innerHTML += depts.map((d) => `<option value="${d.id}">${d.name}</option>`).join("");
+    document.getElementById("filterStatus").innerHTML += HR.enums.EMPLOYMENT_STATUSES.map((s) => `<option value="${s}">${s}</option>`).join("");
+    document.getElementById("filterLocation").innerHTML += db.workLocations.all().map((l) => `<option value="${l.id}">${l.name}</option>`).join("");
+    document.getElementById("filterType").innerHTML += HR.enums.EMPLOYMENT_TYPES.map((t) => `<option value="${t}">${t}</option>`).join("");
+
+    const empTable = HR.ui.initDataTable("#employeeTable", {
+      data: scopedEmployees(),
+      pageLength: 10,
+      order: [[1, "asc"]],
+      emptyIcon: "bi-people",
+      emptyTitle: "No employees match these filters",
+      emptyText: "Try adjusting your search or filters, or add a new employee record.",
+      columns: [
+        { data: "employeeNumber", className: "cell-secondary" },
+        { data: null, render: (row, type) => type === "display"
+            ? `<div class="employee-cell"><span class="avatar-circle">${fmt.initials(row.firstName, row.lastName)}</span><div><div class="cell-primary">${HR.employees.fullName(row)}</div><div class="cell-secondary">${row.companyEmail}</div></div></div>`
+            : HR.employees.fullName(row) },
+        { data: "jobTitle" },
+        { data: null, render: (row) => HR.employees.departmentName(row.departmentId) },
+        { data: null, render: (row) => HR.employees.managerName(row.managerId) },
+        { data: "employmentType" },
+        { data: null, render: (row) => HR.employees.locationName(row.workLocationId) },
+        { data: "startDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+        { data: "status", render: (row) => fmt.statusBadge(row) },
+        { data: null, render: (row) => (row.sponsored ? fmt.statusBadge("Sponsored") + " " : "") + fmt.statusBadge(HR.employees.rtwStatusFor(row.id)) },
+        { data: null, orderable: false, className: "text-end", render: (row) => `<a href="employee-profile.html?id=${row.id}" class="btn btn-sm btn-light-custom">View</a>` }
+      ]
+    });
+
+    document.querySelector("#employeeTable tbody").addEventListener("click", (e) => {
+      if (e.target.closest("a, button")) return;
+      const tr = e.target.closest("tr");
+      const rowData = tr && empTable.row(tr).data();
+      if (rowData) window.location.href = `employee-profile.html?id=${rowData.id}`;
+    });
+
+    const empFilters = HR.ui.createFilterState(empTable, "employeeTable");
+    document.getElementById("empSearch").addEventListener("input", (e) => empTable.search(e.target.value).draw());
+    document.getElementById("filterDept").addEventListener("change", (e) => empFilters.set("dept", e.target.value === "all" ? null : (row) => row.departmentId === e.target.value));
+    document.getElementById("filterStatus").addEventListener("change", (e) => empFilters.set("status", e.target.value === "all" ? null : (row) => row.status === e.target.value));
+    document.getElementById("filterLocation").addEventListener("change", (e) => empFilters.set("location", e.target.value === "all" ? null : (row) => row.workLocationId === e.target.value));
+    document.getElementById("filterType").addEventListener("change", (e) => empFilters.set("type", e.target.value === "all" ? null : (row) => row.employmentType === e.target.value));
+    document.getElementById("filterSponsored").addEventListener("change", (e) => empFilters.set("sponsored", e.target.checked ? (row) => !!row.sponsored : null));
+
+    document.getElementById("exportEmployeesBtn").addEventListener("click", () => {
+      const rows = empTable.rows({ search: "applied" }).data().toArray();
+      HR.ui.exportCsv("employee-directory.csv",
+        ["Employee ID", "Name", "Job Title", "Department", "Manager", "Employment Type", "Work Location", "Start Date", "Status", "Right to Work"],
+        rows.map((e) => [e.employeeNumber, HR.employees.fullName(e), e.jobTitle, HR.employees.departmentName(e.departmentId), HR.employees.managerName(e.managerId), e.employmentType, HR.employees.locationName(e.workLocationId), e.startDate, e.status, HR.employees.rtwStatusFor(e.id)])
+      );
+    });
+
+    // Departments tab ----------------------------------------------------------
+    const deptTable = HR.ui.initDataTable("#departmentTable", {
+      data: db.departments.all(),
+      paging: false,
+      searching: false,
+      info: false,
+      order: [[0, "asc"]],
+      emptyIcon: "bi-diagram-3",
+      emptyTitle: "No departments recorded",
+      columns: [
+        { data: "name", className: "cell-primary" },
+        { data: null, render: (row) => db.employees.find((e) => e.departmentId === row.id && e.status !== "Left").length },
+        { data: "status", render: (row) => fmt.statusBadge(row) },
+        { data: null, orderable: false, className: "text-end", render: (row) => canEdit ? `<button class="btn btn-sm btn-light-custom" data-edit-dept="${row.id}"><i class="bi bi-pencil"></i></button>` : "" }
+      ]
+    });
+    document.querySelector("#departmentTable tbody").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-edit-dept]");
+      if (btn) openDeptModal(db.departments.get(btn.dataset.editDept));
+    });
+
+    document.querySelectorAll("#employeeTabs .nav-link").forEach((b) => b.addEventListener("click", () => activateTab(b.dataset.tab)));
+    activateTab(params.get("tab") === "departments" ? "departments" : "directory");
+
+    const deptModalEl = document.getElementById("deptModal");
+    const deptModal = new bootstrap.Modal(deptModalEl);
+    function openDeptModal(dept) {
+      const form = document.getElementById("deptForm");
+      form.reset();
+      HR.validate.clearValidation(form);
+      form.elements["id"].value = dept ? dept.id : "";
+      form.elements["name"].value = dept ? dept.name : "";
+      form.elements["status"].value = dept ? dept.status : "Active";
+      deptModalEl.querySelector(".modal-title").textContent = dept ? "Edit Department" : "Add Department";
+      deptModal.show();
+    }
+    document.getElementById("addDeptBtn").addEventListener("click", () => openDeptModal(null));
+    document.getElementById("deptForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const form = e.target;
+      if (!HR.validate.validateForm(form, { name: [HR.validate.rules.required] })) return;
+      const id = form.elements["id"].value;
+      const payload = { name: form.elements["name"].value.trim(), status: form.elements["status"].value };
+      if (id) db.departments.update(id, payload); else db.departments.create(payload);
+      deptModal.hide();
+      deptTable.clear().rows.add(db.departments.all()).draw();
+      HR.ui.toastSuccess("Department saved", `${payload.name} has been saved.`);
+    });
+  });
+  </script>
+</body>
+</html>

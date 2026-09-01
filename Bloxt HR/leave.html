@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Leave requests and balances for Bloxt.">
+  <title>Leave Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Leave</h1>
+            <p class="page-subtitle" id="leaveSubtitle">Leave requests, approvals and balances.</p>
+          </div>
+          <button class="btn btn-primary" id="newLeaveBtn"><i class="bi bi-plus-lg"></i> Request Leave</button>
+        </div>
+      </div>
+      <div class="app-content">
+        <div id="leaveBalanceRow" class="kpi-grid mb-4"></div>
+
+        <div class="table-panel">
+          <div class="table-toolbar">
+            <div class="table-toolbar-filters">
+              <select class="form-select form-select-sm" id="leaveStatusFilter" style="width:auto;"><option value="all">All statuses</option></select>
+              <select class="form-select form-select-sm" id="leaveTypeFilter" style="width:auto;"><option value="all">All leave types</option></select>
+              <select class="form-select form-select-sm d-none" id="leaveEmployeeFilter" style="width:auto;"><option value="all">All employees</option></select>
+            </div>
+            <div class="table-toolbar-actions"><button class="btn btn-sm btn-light-custom" id="exportLeaveBtn"><i class="bi bi-download"></i> Export</button></div>
+          </div>
+          <table class="table-app" id="leaveTable" style="width:100%;">
+            <thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Approved By</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="leaveForm">
+          <div class="modal-header"><h2 class="modal-title h5">Request Leave</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-field mb-3 d-none" id="leaveEmployeeField"><label class="form-label">Employee<span class="required-indicator">*</span></label><select class="form-select" name="employeeId" id="leaveEmployeeSelect"></select></div>
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Leave type<span class="required-indicator">*</span></label><select class="form-select" name="leaveType" id="leaveTypeSelect" required></select></div>
+              <div class="form-field"><label class="form-label d-block">Partial day?</label>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="partialDay" value="yes" id="partialYes"><label class="form-check-label" for="partialYes">Yes</label></div>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="partialDay" value="no" id="partialNo" checked><label class="form-check-label" for="partialNo">No</label></div>
+              </div>
+              <div class="form-field"><label class="form-label">From<span class="required-indicator">*</span></label><input type="date" class="form-control" name="from" required></div>
+              <div class="form-field"><label class="form-label">To<span class="required-indicator">*</span></label><input type="date" class="form-control" name="to" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>End date must be after the start date.</span></div></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Reason</label><input class="form-control" name="reason"></div>
+            <div class="mt-3 form-field"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Submit Request</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script src="assets/js/leave.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "leave" });
+    if (!user) return;
+    const db = HR.db, fmt = HR.format, ROLES = HR.enums.ROLES;
+    const params = new URLSearchParams(window.location.search);
+    const selfService = user.role === ROLES.EMPLOYEE;
+    const canApprove = HR.auth.can("APPROVE_LEAVE");
+    const myEmployee = HR.auth.employeeRecordFor(user);
+
+    function scopedEmployees() {
+      if (selfService) return myEmployee ? [myEmployee] : [];
+      if (user.role === ROLES.MANAGER) return HR.employees.directRatingsForManager(myEmployee ? myEmployee.id : null).concat(myEmployee ? [myEmployee] : []);
+      return db.employees.all();
+    }
+    const empScope = scopedEmployees();
+    const empIds = empScope.map((e) => e.id);
+
+    document.getElementById("leaveSubtitle").textContent = selfService ? "Your leave requests and balance." : "Leave requests, approvals and balances.";
+
+    function renderBalances() {
+      const target = selfService ? myEmployee : null;
+      const row = document.getElementById("leaveBalanceRow");
+      if (target) {
+        row.innerHTML = ["Allowance|" + target.leaveAllowance, "Taken|" + target.leaveTakenDays, "Booked|" + target.leaveBookedDays, "Remaining|" + HR.leaveHelpers.remainingAllowance(target)]
+          .map((s) => { const [l, v] = s.split("|"); return `<div class="metric-card metric-accent-info"><span class="metric-label">${l}</span><span class="metric-value">${v} days</span></div>`; }).join("");
+      } else {
+        const pending = db.leaveRequests.find((l) => l.status === "Pending" && empIds.includes(l.employeeId)).length;
+        const approved = db.leaveRequests.find((l) => l.status === "Approved" && empIds.includes(l.employeeId)).length;
+        const today = new Date().toISOString().slice(0, 10);
+        const onLeaveToday = db.leaveRequests.find((l) => l.status === "Approved" && l.from <= today && l.to >= today && empIds.includes(l.employeeId)).length;
+        row.innerHTML = [
+          ["Pending Requests", pending, "warning"], ["Approved Requests", approved, "success"],
+          ["On Leave Today", onLeaveToday, "info"], ["Total Requests", db.leaveRequests.find((l) => empIds.includes(l.employeeId)).length, "primary"]
+        ].map(([l, v, a]) => `<div class="metric-card metric-accent-${a}"><span class="metric-label">${l}</span><span class="metric-value">${v}</span></div>`).join("");
+      }
+    }
+    renderBalances();
+
+    document.getElementById("leaveStatusFilter").innerHTML += HR.enums.LEAVE_STATUSES.map((s) => `<option>${s}</option>`).join("");
+    document.getElementById("leaveTypeFilter").innerHTML += HR.enums.LEAVE_TYPES.map((t) => `<option>${t}</option>`).join("");
+    if (!selfService) {
+      document.getElementById("leaveEmployeeFilter").classList.remove("d-none");
+      document.getElementById("leaveEmployeeFilter").innerHTML += empScope.map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+    }
+
+    function currentData() { return db.leaveRequests.find((l) => empIds.includes(l.employeeId)); }
+
+    const leaveTable = HR.ui.initDataTable("#leaveTable", {
+      data: currentData(),
+      order: [[2, "desc"]],
+      emptyIcon: "bi-airplane",
+      emptyTitle: "No leave requests found",
+      emptyText: "Leave requests matching your filters will appear here.",
+      columns: [
+        { data: null, render: (row) => { const e = db.employees.get(row.employeeId); return `${e.firstName} ${e.lastName}`; } },
+        { data: "leaveType" },
+        { data: "from", render: (row, type) => type === "display" ? fmt.date(row) : row },
+        { data: "to", render: (row, type) => type === "display" ? fmt.date(row) : row },
+        { data: "reason", className: "cell-secondary", render: (row) => row || "—" },
+        { data: "status", render: (row) => fmt.statusBadge(row) },
+        { data: "approvedBy", render: (row) => row || "—" },
+        { data: null, orderable: false, className: "text-end", render: (row) => {
+            const canAct = canApprove && row.status === "Pending";
+            let html = "";
+            if (canAct) html += `<button class="btn btn-sm btn-outline-primary me-1" data-approve="${row.id}">Approve</button><button class="btn btn-sm btn-light-custom" data-reject="${row.id}">Reject</button>`;
+            if (row.status === "Pending" && (selfService || !canApprove)) html += `<button class="btn btn-sm btn-light-custom" data-cancel="${row.id}">Cancel</button>`;
+            return html;
+          } }
+      ]
+    });
+
+    function refreshAll() {
+      leaveTable.clear().rows.add(currentData()).draw();
+      renderBalances();
+    }
+
+    document.querySelector("#leaveTable tbody").addEventListener("click", async (e) => {
+      const approveBtn = e.target.closest("[data-approve]");
+      const rejectBtn = e.target.closest("[data-reject]");
+      const cancelBtn = e.target.closest("[data-cancel]");
+      if (approveBtn) {
+        const ok = await HR.ui.confirmAction({ title: "Approve Leave", body: "Approve this leave request?", confirmVariant: "primary", confirmLabel: "Approve" });
+        if (!ok) return;
+        HR.leaveHelpers.approveLeave(approveBtn.dataset.approve, user.name);
+        HR.ui.toastSuccess("Leave approved", "The request has been approved.");
+        refreshAll();
+      } else if (rejectBtn) {
+        const ok = await HR.ui.confirmAction({ title: "Reject Leave", body: "Reject this leave request?", confirmVariant: "danger", confirmLabel: "Reject" });
+        if (!ok) return;
+        HR.leaveHelpers.rejectLeave(rejectBtn.dataset.reject, user.name);
+        HR.ui.toastSuccess("Leave rejected", "The request has been rejected.");
+        refreshAll();
+      } else if (cancelBtn) {
+        const ok = await HR.ui.confirmAction({ title: "Cancel Leave Request", body: "Are you sure you want to cancel this leave request?", confirmVariant: "danger", confirmLabel: "Cancel Request" });
+        if (!ok) return;
+        HR.leaveHelpers.cancelLeave(cancelBtn.dataset.cancel);
+        HR.ui.toastSuccess("Leave cancelled", "The request has been cancelled.");
+        refreshAll();
+      }
+    });
+
+    const leaveFilters = HR.ui.createFilterState(leaveTable, "leaveTable");
+    document.getElementById("leaveStatusFilter").addEventListener("change", (e) => leaveFilters.set("status", e.target.value === "all" ? null : (row) => row.status === e.target.value));
+    document.getElementById("leaveTypeFilter").addEventListener("change", (e) => leaveFilters.set("type", e.target.value === "all" ? null : (row) => row.leaveType === e.target.value));
+    document.getElementById("leaveEmployeeFilter").addEventListener("change", (e) => leaveFilters.set("employee", e.target.value === "all" ? null : (row) => row.employeeId === e.target.value));
+    document.getElementById("exportLeaveBtn").addEventListener("click", () => {
+      const rows = leaveTable.rows({ search: "applied" }).data().toArray();
+      HR.ui.exportCsv("leave-requests.csv", ["Employee", "Type", "From", "To", "Reason", "Status", "Approved By"],
+        rows.map((l) => { const e = db.employees.get(l.employeeId); return [`${e.firstName} ${e.lastName}`, l.leaveType, l.from, l.to, l.reason || "", l.status, l.approvedBy || ""]; }));
+    });
+
+    // New leave request modal ---------------------------------------------------------
+    document.getElementById("leaveTypeSelect").innerHTML = HR.enums.LEAVE_TYPES.map((t) => `<option>${t}</option>`).join("");
+    if (!selfService) {
+      document.getElementById("leaveEmployeeField").classList.remove("d-none");
+      document.getElementById("leaveEmployeeSelect").innerHTML = empScope.map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName}</option>`).join("");
+    }
+    const leaveModal = new bootstrap.Modal(document.getElementById("leaveModal"));
+    function openLeaveModal() {
+      document.getElementById("leaveForm").reset();
+      leaveModal.show();
+    }
+    document.getElementById("newLeaveBtn").addEventListener("click", openLeaveModal);
+    if (params.get("new") === "1") openLeaveModal();
+
+    document.getElementById("leaveForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const form = e.target;
+      if (!HR.validate.validateForm(form, { to: [(v) => HR.validate.rules.endAfterStart(v, form.elements["from"].value)] })) return;
+      const fd = new FormData(form);
+      const data = Object.fromEntries(fd.entries());
+      const employeeId = selfService ? myEmployee.id : data.employeeId;
+      db.leaveRequests.create({ employeeId, leaveType: data.leaveType, from: data.from, to: data.to, partialDay: data.partialDay === "yes", reason: data.reason || null, notes: data.notes || null, status: "Pending", approvedBy: null, requestedDate: HR.util.nowISO().slice(0, 10) });
+      HR.audit.log({ employeeId, action: "Leave requested", module: "Leave", description: `${data.leaveType} requested from ${data.from} to ${data.to}.` });
+      leaveModal.hide();
+      HR.ui.toastSuccess("Leave requested", "Your leave request has been submitted for approval.");
+      refreshAll();
+    });
+  });
+  </script>
+</body>
+</html>

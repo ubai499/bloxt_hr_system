@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Add a new employee record to Bloxt HR.">
+  <title>Add Employee Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+
+      <div class="page-header-bar">
+        <div class="breadcrumb-trail"><a href="employees.html">Employees</a><span class="breadcrumb-sep">/</span>Add Employee</div>
+        <h1 class="page-title">Add Employee</h1>
+        <p class="page-subtitle">Record a new employee using the standard onboarding workflow.</p>
+      </div>
+
+      <div class="app-content">
+        <div class="panel" style="max-width:900px;margin:0 auto;">
+          <ol class="wizard-steps" id="wizardSteps">
+            <li class="wizard-step is-active" data-step="1"><span class="wizard-step-index">1</span><span class="wizard-step-label">Personal</span></li>
+            <li class="wizard-step-connector"></li>
+            <li class="wizard-step" data-step="2"><span class="wizard-step-index">2</span><span class="wizard-step-label">Employment</span></li>
+            <li class="wizard-step-connector"></li>
+            <li class="wizard-step" data-step="3"><span class="wizard-step-index">3</span><span class="wizard-step-label">Compensation</span></li>
+            <li class="wizard-step-connector"></li>
+            <li class="wizard-step" data-step="4"><span class="wizard-step-index">4</span><span class="wizard-step-label">Right to Work</span></li>
+            <li class="wizard-step-connector"></li>
+            <li class="wizard-step" data-step="5"><span class="wizard-step-index">5</span><span class="wizard-step-label">Documents</span></li>
+            <li class="wizard-step-connector"></li>
+            <li class="wizard-step" data-step="6"><span class="wizard-step-index">6</span><span class="wizard-step-label">Review</span></li>
+          </ol>
+
+          <form id="wizardForm" novalidate>
+            <!-- STEP 1 — PERSONAL -->
+            <div class="wizard-panel" data-panel="1">
+              <fieldset class="form-fieldset">
+                <legend class="form-legend">Personal details</legend>
+                <div class="form-grid-3">
+                  <div class="form-field"><label class="form-label" for="employeeNumber">Employee number<span class="required-indicator">*</span></label><input class="form-control" id="employeeNumber" name="employeeNumber" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a unique employee number.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="empTitle">Title</label><select class="form-select" id="empTitle" name="title"><option>Mr</option><option>Ms</option><option>Mrs</option><option>Dr</option><option>Mx</option></select></div>
+                  <div class="form-field"><label class="form-label" for="firstName">First name<span class="required-indicator">*</span></label><input class="form-control" id="firstName" name="firstName" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a first name.</span></div></div>
+                </div>
+                <div class="form-grid-3 mt-3">
+                  <div class="form-field"><label class="form-label" for="middleName">Middle name</label><input class="form-control" id="middleName" name="middleName"></div>
+                  <div class="form-field"><label class="form-label" for="lastName">Last name<span class="required-indicator">*</span></label><input class="form-control" id="lastName" name="lastName" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a last name.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="preferredName">Preferred name</label><input class="form-control" id="preferredName" name="preferredName"></div>
+                </div>
+                <div class="form-grid-3 mt-3">
+                  <div class="form-field"><label class="form-label" for="personalEmail">Personal email</label><input type="email" class="form-control" id="personalEmail" name="personalEmail"><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a valid email address.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="companyEmail">Company email<span class="required-indicator">*</span></label><input type="email" class="form-control" id="companyEmail" name="companyEmail" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a valid company email address.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="mobile">Mobile number<span class="required-indicator">*</span></label><input class="form-control" id="mobile" name="mobile" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a mobile number.</span></div></div>
+                </div>
+                <div class="form-grid-3 mt-3">
+                  <div class="form-field"><label class="form-label" for="dob">Date of birth<span class="required-indicator">*</span></label><input type="date" class="form-control" id="dob" name="dob" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a date of birth in the past.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="nationality">Nationality<span class="required-indicator">*</span></label><input class="form-control" id="nationality" name="nationality" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a nationality.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="postcode">Postcode<span class="required-indicator">*</span></label><input class="form-control" id="postcode" name="postcode" placeholder="LS1 4PR" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a valid UK postcode.</span></div></div>
+                </div>
+                <div class="mt-3 form-field"><label class="form-label" for="address">Home address<span class="required-indicator">*</span></label><input class="form-control" id="address" name="address" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a home address.</span></div></div>
+              </fieldset>
+              <fieldset class="form-fieldset mb-0">
+                <legend class="form-legend">Emergency contact</legend>
+                <div class="form-grid-3">
+                  <div class="form-field"><label class="form-label" for="emergencyContact">Contact name<span class="required-indicator">*</span></label><input class="form-control" id="emergencyContact" name="emergencyContact" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter an emergency contact name.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="emergencyRelationship">Relationship</label><input class="form-control" id="emergencyRelationship" name="emergencyRelationship"></div>
+                  <div class="form-field"><label class="form-label" for="emergencyPhone">Contact number<span class="required-indicator">*</span></label><input class="form-control" id="emergencyPhone" name="emergencyPhone" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter an emergency contact number.</span></div></div>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- STEP 2 — EMPLOYMENT -->
+            <div class="wizard-panel d-none" data-panel="2">
+              <fieldset class="form-fieldset mb-0">
+                <legend class="form-legend">Employment details</legend>
+                <div class="form-grid-3">
+                  <div class="form-field"><label class="form-label" for="jobTitle">Job title<span class="required-indicator">*</span></label><input class="form-control" id="jobTitle" name="jobTitle" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a job title.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="departmentId">Department<span class="required-indicator">*</span></label><select class="form-select" id="departmentId" name="departmentId" required></select></div>
+                  <div class="form-field"><label class="form-label" for="managerId">Manager</label><select class="form-select" id="managerId" name="managerId"><option value="">No manager (top of structure)</option></select></div>
+                </div>
+                <div class="form-grid-3 mt-3">
+                  <div class="form-field"><label class="form-label" for="employmentType">Employment type<span class="required-indicator">*</span></label><select class="form-select" id="employmentType" name="employmentType" required></select></div>
+                  <div class="form-field"><label class="form-label" for="startDate">Start date<span class="required-indicator">*</span></label><input type="date" class="form-control" id="startDate" name="startDate" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a start date.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="endDate">End date (if applicable)</label><input type="date" class="form-control" id="endDate" name="endDate"><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>End date must be after the start date.</span></div></div>
+                </div>
+                <div class="form-grid-3 mt-3">
+                  <div class="form-field"><label class="form-label" for="probationEndDate">Probation end date</label><input type="date" class="form-control" id="probationEndDate" name="probationEndDate"></div>
+                  <div class="form-field"><label class="form-label" for="workLocationId">Work location<span class="required-indicator">*</span></label><select class="form-select" id="workLocationId" name="workLocationId" required></select></div>
+                  <div class="form-field"><label class="form-label" for="workArrangement">Working arrangement<span class="required-indicator">*</span></label><select class="form-select" id="workArrangement" name="workArrangement" required></select></div>
+                </div>
+                <div class="form-grid-2 mt-3">
+                  <div class="form-field"><label class="form-label" for="weeklyHours">Weekly contracted hours<span class="required-indicator">*</span></label><input type="number" step="0.5" class="form-control" id="weeklyHours" name="weeklyHours" value="37.5" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a realistic weekly hours figure.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="normalHours">Normal working hours</label><input class="form-control" id="normalHours" name="normalHours" value="09:00–17:30, Monday to Friday"></div>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- STEP 3 — COMPENSATION -->
+            <div class="wizard-panel d-none" data-panel="3">
+              <fieldset class="form-fieldset mb-0">
+                <legend class="form-legend">Compensation</legend>
+                <div class="form-grid-3">
+                  <div class="form-field"><label class="form-label" for="annualSalary">Annual salary (£)<span class="required-indicator">*</span></label><input type="number" min="0" class="form-control" id="annualSalary" name="annualSalary" required><div class="invalid-feedback-custom"><i class="bi bi-exclamation-circle"></i><span>Enter a positive salary amount.</span></div></div>
+                  <div class="form-field"><label class="form-label" for="salaryFrequency">Salary basis</label><select class="form-select" id="salaryFrequency" name="salaryFrequency"><option>Annual</option><option>Hourly</option><option>Monthly</option></select></div>
+                  <div class="form-field"><label class="form-label" for="hourlyRate">Hourly rate, if applicable (£)</label><input type="number" min="0" step="0.01" class="form-control" id="hourlyRate" name="hourlyRate"></div>
+                </div>
+                <div class="form-grid-3 mt-3">
+                  <div class="form-field"><label class="form-label" for="salaryEffectiveDate">Effective date<span class="required-indicator">*</span></label><input type="date" class="form-control" id="salaryEffectiveDate" name="salaryEffectiveDate" required></div>
+                  <div class="form-field"><label class="form-label" for="salaryReason">Reason for salary change</label><input class="form-control" id="salaryReason" name="salaryReason" value="Starting salary"></div>
+                  <div class="form-field"><label class="form-label" for="authorisedBy">Authorised by</label><input class="form-control" id="authorisedBy" name="authorisedBy" placeholder="e.g. Louise Farrington"></div>
+                </div>
+                <p class="form-text-help mt-2"><i class="bi bi-info-circle"></i> Immigration eligibility is never calculated from salary alone within this system right-to-work status is recorded separately in the next step.</p>
+              </fieldset>
+            </div>
+
+            <!-- STEP 4 — RIGHT TO WORK -->
+            <div class="wizard-panel d-none" data-panel="4">
+              <fieldset class="form-fieldset mb-0">
+                <legend class="form-legend">Right to work</legend>
+                <div class="form-field mb-3">
+                  <label class="form-label d-block">Right-to-work check required?</label>
+                  <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="rtwRequired" id="rtwYes" value="yes" checked><label class="form-check-label" for="rtwYes">Yes</label></div>
+                  <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="rtwRequired" id="rtwNo" value="no"><label class="form-check-label" for="rtwNo">No</label></div>
+                </div>
+                <div id="rtwFields">
+                  <div class="form-grid-3">
+                    <div class="form-field"><label class="form-label" for="rtwCheckType">Check type</label><select class="form-select" id="rtwCheckType" name="rtwCheckType"></select></div>
+                    <div class="form-field"><label class="form-label" for="rtwCheckDate">Date checked</label><input type="date" class="form-control" id="rtwCheckDate" name="rtwCheckDate"></div>
+                    <div class="form-field"><label class="form-label" for="rtwCheckedBy">Checked by</label><input class="form-control" id="rtwCheckedBy" name="rtwCheckedBy" placeholder="e.g. Sarah Whitfield"></div>
+                  </div>
+                  <div class="form-grid-3 mt-3">
+                    <div class="form-field"><label class="form-label" for="immigrationStatus">Immigration status</label><input class="form-control" id="immigrationStatus" name="immigrationStatus" placeholder="e.g. British Citizen, Skilled Worker"></div>
+                    <div class="form-field"><label class="form-label" for="permissionStart">Permission start date</label><input type="date" class="form-control" id="permissionStart" name="permissionStart"></div>
+                    <div class="form-field"><label class="form-label" for="permissionExpiry">Permission expiry date</label><input type="date" class="form-control" id="permissionExpiry" name="permissionExpiry"></div>
+                  </div>
+                  <div class="form-grid-3 mt-3">
+                    <div class="form-field">
+                      <label class="form-label d-block">Follow-up required?</label>
+                      <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="rtwFollowUp" id="followUpYes" value="yes"><label class="form-check-label" for="followUpYes">Yes</label></div>
+                      <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="rtwFollowUp" id="followUpNo" value="no" checked><label class="form-check-label" for="followUpNo">No</label></div>
+                    </div>
+                    <div class="form-field"><label class="form-label" for="rtwNextReview">Next review date</label><input type="date" class="form-control" id="rtwNextReview" name="rtwNextReview"></div>
+                    <div class="form-field"><label class="form-label" for="evidenceRef">Evidence reference</label><input class="form-control" id="evidenceRef" name="evidenceRef" placeholder="e.g. share code reference"></div>
+                  </div>
+                  <div class="mt-3 form-field"><label class="form-label" for="rtwNotes">Notes</label><textarea class="form-control" id="rtwNotes" name="rtwNotes" rows="2"></textarea></div>
+                </div>
+              </fieldset>
+            </div>
+
+            <!-- STEP 5 — DOCUMENTS -->
+            <div class="wizard-panel d-none" data-panel="5">
+              <fieldset class="form-fieldset mb-0">
+                <legend class="form-legend">Documents</legend>
+                <p class="form-text-help mb-3">Attach the documents provided for this employee. In this prototype, files are recorded by title only a production system would store the file securely with access controls.</p>
+                <div id="docRows">
+                  <div class="input-group mb-2">
+                    <span class="input-group-text"><i class="bi bi-file-earmark"></i></span>
+                    <input class="form-control doc-title-input" placeholder="e.g. Employment contract signed">
+                    <button type="button" class="btn btn-light-custom border remove-doc-row"><i class="bi bi-x"></i></button>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addDocRowBtn"><i class="bi bi-plus-lg"></i> Add another document</button>
+              </fieldset>
+            </div>
+
+            <!-- STEP 6 — REVIEW -->
+            <div class="wizard-panel d-none" data-panel="6">
+              <div id="reviewSummary"></div>
+              <div class="form-check mt-4 p-3" style="background:#F5F7FA;border-radius:10px;">
+                <input class="form-check-input" type="checkbox" id="confirmAccuracy" required>
+                <label class="form-check-label small" for="confirmAccuracy">I confirm the information recorded reflects the documents and information provided for this employee.</label>
+              </div>
+            </div>
+
+            <div class="form-actions-bar">
+              <button type="button" class="btn btn-light-custom" id="wizardBackBtn">Back</button>
+              <a href="employees.html" class="btn btn-ghost">Cancel</a>
+              <button type="button" class="btn btn-primary" id="wizardNextBtn">Continue</button>
+              <button type="submit" class="btn btn-primary d-none" id="wizardSubmitBtn">Save Employee</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const user = HR.nav.mount({ active: "employees" });
+    if (!user) return;
+    if (!HR.auth.can("EDIT_EMPLOYEE")) {
+      document.querySelector(".app-content").innerHTML = `<div class="panel"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-lock"></i></div><div class="empty-state-title">Access denied</div><div class="empty-state-text">Your role does not have permission to add employee records.</div></div></div>`;
+      return;
+    }
+    const db = HR.db;
+    let currentStep = 1;
+    const totalSteps = 6;
+
+    document.getElementById("departmentId").innerHTML = db.departments.all().map((d) => `<option value="${d.id}">${d.name}</option>`).join("");
+    document.getElementById("managerId").innerHTML += db.employees.all().map((e) => `<option value="${e.id}">${e.firstName} ${e.lastName} ${e.jobTitle}</option>`).join("");
+    document.getElementById("employmentType").innerHTML = HR.enums.EMPLOYMENT_TYPES.map((t) => `<option>${t}</option>`).join("");
+    document.getElementById("workLocationId").innerHTML = db.workLocations.all().map((l) => `<option value="${l.id}">${l.name}</option>`).join("");
+    document.getElementById("workArrangement").innerHTML = HR.enums.WORK_ARRANGEMENTS.map((w) => `<option>${w}</option>`).join("");
+    document.getElementById("rtwCheckType").innerHTML = HR.enums.RTW_CHECK_METHODS.map((m) => `<option>${m}</option>`).join("");
+    document.getElementById("startDate").valueAsDate = new Date();
+    document.getElementById("salaryEffectiveDate").valueAsDate = new Date();
+    document.getElementById("rtwCheckDate").valueAsDate = new Date();
+
+    document.querySelectorAll('input[name="rtwRequired"]').forEach((r) => r.addEventListener("change", () => {
+      document.getElementById("rtwFields").classList.toggle("d-none", document.querySelector('input[name="rtwRequired"]:checked').value === "no");
+    }));
+
+    document.getElementById("addDocRowBtn").addEventListener("click", () => {
+      const row = document.createElement("div");
+      row.className = "input-group mb-2";
+      row.innerHTML = `<span class="input-group-text"><i class="bi bi-file-earmark"></i></span><input class="form-control doc-title-input" placeholder="Document title"><button type="button" class="btn btn-light-custom border remove-doc-row"><i class="bi bi-x"></i></button>`;
+      document.getElementById("docRows").appendChild(row);
+    });
+    document.getElementById("docRows").addEventListener("click", (e) => {
+      if (e.target.closest(".remove-doc-row")) e.target.closest(".input-group").remove();
+    });
+
+    const STEP_VALIDATION = {
+      1: { firstName: [HR.validate.rules.required], lastName: [HR.validate.rules.required], employeeNumber: [HR.validate.rules.required],
+        companyEmail: [HR.validate.rules.required, HR.validate.rules.email], personalEmail: [HR.validate.rules.email],
+        mobile: [HR.validate.rules.required, HR.validate.rules.phone], dob: [HR.validate.rules.required, HR.validate.rules.dateNotFuture],
+        nationality: [HR.validate.rules.required], address: [HR.validate.rules.required], postcode: [HR.validate.rules.required, HR.validate.rules.ukPostcode],
+        emergencyContact: [HR.validate.rules.required], emergencyPhone: [HR.validate.rules.required, HR.validate.rules.phone] },
+      2: { jobTitle: [HR.validate.rules.required], startDate: [HR.validate.rules.required],
+        weeklyHours: [HR.validate.rules.required, HR.validate.rules.maxWeeklyHours],
+        endDate: [(v, form) => HR.validate.rules.endAfterStart(v, form.elements["startDate"].value)] },
+      3: { annualSalary: [HR.validate.rules.required, HR.validate.rules.positiveNumber], salaryEffectiveDate: [HR.validate.rules.required] },
+      4: {}, 5: {}, 6: {}
+    };
+
+    function goToStep(step) {
+      if (step === currentStep + 1) {
+        const form = document.getElementById("wizardForm");
+        if (!HR.validate.validateForm(form, STEP_VALIDATION[currentStep])) {
+          HR.ui.toastError("Check the highlighted fields", "Some required information is missing or invalid.");
+          return;
+        }
+        if (currentStep === 1 && HR.validate.isDuplicateEmployeeNumber(form.elements["employeeNumber"].value.trim())) {
+          HR.ui.toastError("Duplicate employee number", "This employee number is already in use.");
+          const wrapper = form.elements["employeeNumber"].closest(".form-field");
+          wrapper.classList.add("field-invalid");
+          wrapper.querySelector(".invalid-feedback-custom span").textContent = "This employee number is already in use.";
+          return;
+        }
+      }
+      currentStep = step;
+      document.querySelectorAll(".wizard-panel").forEach((p) => p.classList.toggle("d-none", Number(p.dataset.panel) !== currentStep));
+      document.querySelectorAll("#wizardSteps .wizard-step").forEach((s) => {
+        const n = Number(s.dataset.step);
+        s.classList.toggle("is-active", n === currentStep);
+        s.classList.toggle("is-complete", n < currentStep);
+      });
+      document.getElementById("wizardBackBtn").classList.toggle("d-none", currentStep === 1);
+      document.getElementById("wizardNextBtn").classList.toggle("d-none", currentStep === totalSteps);
+      document.getElementById("wizardSubmitBtn").classList.toggle("d-none", currentStep !== totalSteps);
+      if (currentStep === totalSteps) renderReview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.getElementById("wizardNextBtn").addEventListener("click", () => goToStep(currentStep + 1));
+    document.getElementById("wizardBackBtn").addEventListener("click", () => goToStep(currentStep - 1));
+
+    function collectData() {
+      const form = document.getElementById("wizardForm");
+      const fd = new FormData(form);
+      const data = Object.fromEntries(fd.entries());
+      data.documentTitles = Array.from(document.querySelectorAll(".doc-title-input")).map((i) => i.value.trim()).filter(Boolean);
+      return data;
+    }
+
+    function renderReview() {
+      const d = collectData();
+      const deptName = HR.employees.departmentName(d.departmentId);
+      const locName = HR.employees.locationName(d.workLocationId);
+      document.getElementById("reviewSummary").innerHTML = `
+        <div class="wizard-summary-block">
+          <div class="wizard-summary-title"><i class="bi bi-person text-secondary-custom"></i> Personal</div>
+          <div class="detail-grid">
+            <div class="detail-item"><dt>Name</dt><dd>${d.title} ${d.firstName} ${d.middleName || ""} ${d.lastName}</dd></div>
+            <div class="detail-item"><dt>Employee number</dt><dd>${d.employeeNumber}</dd></div>
+            <div class="detail-item"><dt>Company email</dt><dd>${d.companyEmail}</dd></div>
+            <div class="detail-item"><dt>Mobile</dt><dd>${d.mobile}</dd></div>
+            <div class="detail-item"><dt>Date of birth</dt><dd>${HR.format.date(d.dob)}</dd></div>
+            <div class="detail-item"><dt>Nationality</dt><dd>${d.nationality}</dd></div>
+          </div>
+        </div>
+        <div class="wizard-summary-block">
+          <div class="wizard-summary-title"><i class="bi bi-briefcase text-secondary-custom"></i> Employment</div>
+          <div class="detail-grid">
+            <div class="detail-item"><dt>Job title</dt><dd>${d.jobTitle}</dd></div>
+            <div class="detail-item"><dt>Department</dt><dd>${deptName}</dd></div>
+            <div class="detail-item"><dt>Employment type</dt><dd>${d.employmentType}</dd></div>
+            <div class="detail-item"><dt>Start date</dt><dd>${HR.format.date(d.startDate)}</dd></div>
+            <div class="detail-item"><dt>Work location</dt><dd>${locName} (${d.workArrangement})</dd></div>
+            <div class="detail-item"><dt>Weekly hours</dt><dd>${d.weeklyHours}</dd></div>
+          </div>
+        </div>
+        <div class="wizard-summary-block">
+          <div class="wizard-summary-title"><i class="bi bi-cash-stack text-secondary-custom"></i> Compensation</div>
+          <div class="detail-grid">
+            <div class="detail-item"><dt>Annual salary</dt><dd>${HR.format.currency(d.annualSalary)}</dd></div>
+            <div class="detail-item"><dt>Effective date</dt><dd>${HR.format.date(d.salaryEffectiveDate)}</dd></div>
+          </div>
+        </div>
+        <div class="wizard-summary-block mb-0">
+          <div class="wizard-summary-title"><i class="bi bi-patch-check text-secondary-custom"></i> Right to Work</div>
+          ${d.rtwRequired === "yes" ? `<div class="detail-grid">
+            <div class="detail-item"><dt>Check type</dt><dd>${d.rtwCheckType}</dd></div>
+            <div class="detail-item"><dt>Immigration status</dt><dd>${d.immigrationStatus || "—"}</dd></div>
+            <div class="detail-item"><dt>Permission expiry</dt><dd>${d.permissionExpiry ? HR.format.date(d.permissionExpiry) : "N/A"}</dd></div>
+            <div class="detail-item"><dt>Documents attached</dt><dd>${d.documentTitles.length}</dd></div>
+          </div>` : `<p class="text-secondary-custom small mb-0">No right-to-work check recorded as required for this employee.</p>`}
+        </div>`;
+    }
+
+    document.getElementById("wizardForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!document.getElementById("confirmAccuracy").checked) {
+        HR.ui.toastError("Confirmation required", "Please confirm the information is accurate before saving.");
+        return;
+      }
+      const btn = document.getElementById("wizardSubmitBtn");
+      btn.classList.add("is-loading"); btn.disabled = true;
+      setTimeout(() => {
+        const data = collectData();
+        const emp = HR.employees.createEmployeeFromWizard(data);
+        HR.ui.toastSuccess("Employee added", `${HR.employees.fullName(emp)} has been added to the directory.`);
+        window.location.href = `employee-profile.html?id=${emp.id}`;
+      }, 500);
+    });
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Company, user and HR settings for Bloxt.">
+  <title>Settings Bloxt People &amp; Compliance</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/icons/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/css/vendor/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="app-shell d-flex">
+    <div id="sidebarMount"></div>
+    <div class="app-main">
+      <div id="headerMount"></div>
+      <div class="page-header-bar">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Company details, user access and HR configuration.</p>
+        <ul class="nav profile-tabs mt-4" id="settingsTabs">
+          <li class="nav-item"><button class="nav-link" data-tab="company">Company Settings</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="users">Users &amp; Roles</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="hr">HR Settings</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="account">Account</button></li>
+          <li class="nav-item"><button class="nav-link" data-tab="security">Security</button></li>
+        </ul>
+      </div>
+      <div class="app-content" id="settingsContent"></div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="companyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <form id="companyForm">
+          <div class="modal-header"><h2 class="modal-title h5">Edit Company Details</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Registered company name</label><input class="form-control" name="legalName"></div>
+              <div class="form-field"><label class="form-label">Trading name</label><input class="form-control" name="tradingName"></div>
+              <div class="form-field"><label class="form-label">Companies House number</label><input class="form-control" name="companiesHouseNumber"></div>
+              <div class="form-field"><label class="form-label">PAYE reference</label><input class="form-control" name="payeReference"></div>
+              <div class="form-field"><label class="form-label">Telephone</label><input class="form-control" name="telephone"></div>
+              <div class="form-field"><label class="form-label">General email</label><input type="email" class="form-control" name="generalEmail"></div>
+              <div class="form-field"><label class="form-label">Website</label><input class="form-control" name="website"></div>
+              <div class="form-field"><label class="form-label">Industry</label><input class="form-control" name="industry"></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Registered office</label><input class="form-control" name="registeredOffice"></div>
+            <div class="mt-3 form-field"><label class="form-label">Trading address</label><input class="form-control" name="tradingAddress"></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Company Details</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="userForm">
+          <input type="hidden" name="id">
+          <div class="modal-header"><h2 class="modal-title h5">Add User</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-field mb-3"><label class="form-label">Full name<span class="required-indicator">*</span></label><input class="form-control" name="name" required></div>
+            <div class="form-field mb-3"><label class="form-label">Work email<span class="required-indicator">*</span></label><input type="email" class="form-control" name="email" required></div>
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Role<span class="required-indicator">*</span></label><select class="form-select" name="role" id="userRoleSelect" required></select></div>
+              <div class="form-field"><label class="form-label">Linked employee</label><select class="form-select" name="employeeId" id="userEmployeeSelect"><option value="">Not linked to an employee record</option></select></div>
+            </div>
+            <div class="mt-3 form-field"><label class="form-label">Status</label><select class="form-select" name="status"><option>Active</option><option>Inactive</option></select></div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save User</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="policyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="policyForm">
+          <div class="modal-header"><h2 class="modal-title h5">Add Policy</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="form-field mb-3"><label class="form-label">Policy name<span class="required-indicator">*</span></label><input class="form-control" name="name" required></div>
+            <div class="form-grid-2">
+              <div class="form-field"><label class="form-label">Version</label><input class="form-control" name="version" value="1.0"></div>
+              <div class="form-field"><label class="form-label">Issue date</label><input type="date" class="form-control" name="issueDate"></div>
+              <div class="form-field"><label class="form-label">Owner</label><input class="form-control" name="owner" placeholder="e.g. Sarah Whitfield"></div>
+              <div class="form-field"><label class="form-label d-block">Requires acknowledgement?</label>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="requiresAcknowledgement" value="yes" checked><label class="form-check-label">Yes</label></div>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="requiresAcknowledgement" value="no"><label class="form-check-label">No</label></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save Policy</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/vendor/bootstrap.bundle.min.js" defer></script>
+  <script src="assets/js/vendor/jquery.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.min.js" defer></script>
+  <script src="assets/js/vendor/dataTables.bootstrap5.min.js" defer></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/validation.js" defer></script>
+  <script src="assets/js/notifications.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/navigation.js" defer></script>
+  <script src="assets/js/compliance.js" defer></script>
+  <script src="assets/js/employees.js" defer></script>
+  <script defer>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const SETTINGS_NAV_KEYS = { users: "users", company: "company-settings", hr: "hr-settings" };
+    const user = HR.nav.mount({ active: SETTINGS_NAV_KEYS[params.get("tab")] || "company-settings" });
+    if (!user) return;
+    const db = HR.db, fmt = HR.format;
+    const canManageSettings = HR.auth.can("MANAGE_SETTINGS");
+    const canManageUsers = HR.auth.can("MANAGE_USERS");
+
+    const ALL_TABS = ["company", "users", "hr", "account", "security"];
+    const VISIBLE_TABS = ALL_TABS.filter((t) => (t === "users" ? canManageUsers : t === "company" || t === "hr" ? canManageSettings || true : true));
+    document.querySelectorAll("#settingsTabs .nav-link").forEach((b) => { if (b.dataset.tab === "users" && !canManageUsers) b.remove(); });
+
+    function tabCompany() {
+      const c = HR.company.get();
+      return `<div class="row g-4">
+        <div class="col-lg-8">
+          <div class="panel mb-4">
+            <div class="panel-header"><div class="panel-title">Company Record</div>${canManageSettings ? `<button class="btn btn-sm btn-light-custom" id="editCompanyBtn"><i class="bi bi-pencil"></i> Edit</button>` : ""}</div>
+            <div class="detail-grid">
+              <div class="detail-item"><dt>Registered company name</dt><dd>${c.legalName}</dd></div>
+              <div class="detail-item"><dt>Trading name</dt><dd>${c.tradingName}</dd></div>
+              <div class="detail-item"><dt>Companies House number</dt><dd>${c.companiesHouseNumber}</dd></div>
+              <div class="detail-item"><dt>PAYE reference</dt><dd>${c.payeReference}</dd></div>
+              <div class="detail-item"><dt>Registered office</dt><dd>${c.registeredOffice}</dd></div>
+              <div class="detail-item"><dt>Trading address</dt><dd>${c.tradingAddress}</dd></div>
+              <div class="detail-item"><dt>Telephone</dt><dd>${c.telephone}</dd></div>
+              <div class="detail-item"><dt>General email</dt><dd>${c.generalEmail}</dd></div>
+              <div class="detail-item"><dt>Website</dt><dd>${c.website}</dd></div>
+              <div class="detail-item"><dt>Industry</dt><dd>${c.industry}</dd></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Company Contacts &amp; Organisation Structure</div></div>
+            <div class="detail-grid">
+              <div class="detail-item"><dt>Authorising officer</dt><dd>${c.sponsorLicence.authorisingOfficer}</dd></div>
+              <div class="detail-item"><dt>Key contact</dt><dd>${c.sponsorLicence.keyContact}</dd></div>
+              <div class="detail-item"><dt>Departments</dt><dd>${db.departments.all().length} active departments</dd></div>
+              <div class="detail-item"><dt>Work locations</dt><dd>${db.workLocations.all().length} sites</dd></div>
+            </div>
+            <a href="sponsorship.html" class="btn btn-sm btn-outline-primary mt-3">View Sponsor Licence Administration</a>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Prototype Demo Accounts</div></div>
+            <p class="text-meta">All demo accounts share the password <strong>Password123!</strong></p>
+            ${db.users.all().map((u) => `<div class="py-2 border-bottom small"><div class="fw-medium">${u.name}</div><div class="text-meta">${u.email} ${HR.enums.ROLE_LABELS[u.role]}</div></div>`).join("")}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function tabUsers() {
+      return `<div class="panel mb-4">
+        <div class="panel-header"><div><div class="panel-title">Role Access Overview</div><div class="panel-desc">Frontend role checks are for UX only production access control must also be enforced server-side.</div></div></div>
+        <div class="detail-grid">
+          <div class="detail-item"><dt>Employee</dt><dd>Own profile, own documents, own attendance and leave only</dd></div>
+          <div class="detail-item"><dt>Manager</dt><dd>Team employees, team attendance and leave approvals</dd></div>
+          <div class="detail-item"><dt>HR Administrator</dt><dd>Full HR records</dd></div>
+          <div class="detail-item"><dt>Compliance Administrator</dt><dd>Immigration and compliance information</dd></div>
+          <div class="detail-item"><dt>Company Director</dt><dd>Management overview and authorised reports</dd></div>
+          <div class="detail-item"><dt>Read-only Auditor</dt><dd>Read-only restricted access</dd></div>
+        </div>
+      </div>
+      <div class="table-panel">
+        <div class="table-toolbar"><div><span class="fw-semibold">System users</span></div><div class="table-toolbar-actions"><button class="btn btn-sm btn-primary" id="newUserBtn"><i class="bi bi-plus-lg"></i> Add User</button></div></div>
+        <table class="table-app" id="usersTable" style="width:100%;">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Linked Employee</th><th>Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>`;
+    }
+
+    function tabHr() {
+      const c = HR.company.get();
+      const policies = db.policies.all();
+      return `<div class="row g-4">
+        <div class="col-lg-6">
+          <div class="panel mb-4">
+            <div class="panel-header"><div class="panel-title">Document Expiry Reminders</div></div>
+            <p class="text-meta">Reminder intervals before a document's expiry date. Configurable because retention and notice requirements can change.</p>
+            <div class="d-flex flex-wrap gap-2">${c.documentExpiryReminderDays.map((d) => `<span class="status-badge badge-info">${d} days</span>`).join("")}</div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Compliance Rule Register</div></div>
+            <table class="table-app" id="ruleRegisterTable" style="width:100%;">
+              <thead><tr><th>Rule</th><th>Effective</th><th>Last Checked</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="table-panel">
+            <div class="table-toolbar"><div><span class="fw-semibold">Company policies</span></div><div class="table-toolbar-actions"><button class="btn btn-sm btn-primary" id="newPolicyBtn"><i class="bi bi-plus-lg"></i> Add Policy</button></div></div>
+            <table class="table-app" id="policiesTable" style="width:100%;">
+              <thead><tr><th>Policy</th><th>Version</th><th>Issued</th><th>Acknowledged</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function tabAccount() {
+      return `<div class="panel" style="max-width:520px;">
+        <div class="panel-header"><div class="panel-title">Account Details</div></div>
+        <div class="detail-grid">
+          <div class="detail-item"><dt>Name</dt><dd>${user.name}</dd></div>
+          <div class="detail-item"><dt>Work email</dt><dd>${user.email}</dd></div>
+          <div class="detail-item"><dt>Role</dt><dd>${HR.enums.ROLE_LABELS[user.role]}</dd></div>
+          <div class="detail-item"><dt>Account status</dt><dd>${fmt.statusBadge(user.status)}</dd></div>
+        </div>
+      </div>`;
+    }
+
+    function tabSecurity() {
+      return `<div class="panel" style="max-width:520px;">
+        <div class="panel-header"><div class="panel-title">Security</div></div>
+        <p class="text-secondary-custom small">Password changes and multi-factor authentication are managed centrally by your Super Administrator in this prototype.</p>
+        <button class="btn btn-light-custom" disabled><i class="bi bi-key"></i> Change Password</button>
+        <p class="form-text-help mt-3"><i class="bi bi-info-circle"></i> In production, authentication must use hashed passwords, enforced session expiry and optional multi-factor authentication never plaintext credentials in browser storage.</p>
+      </div>`;
+    }
+
+    const RENDERERS = { company: tabCompany, users: tabUsers, hr: tabHr, account: tabAccount, security: tabSecurity };
+
+    function activate(tab) {
+      if (tab === "users" && !canManageUsers) tab = "company";
+      document.querySelectorAll("#settingsTabs .nav-link").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById("settingsContent").innerHTML = RENDERERS[tab]();
+      if (tab === "company") wireCompany();
+      if (tab === "users") wireUsers();
+      if (tab === "hr") wireHr();
+    }
+    document.querySelectorAll("#settingsTabs .nav-link").forEach((b) => b.addEventListener("click", () => activate(b.dataset.tab)));
+
+    function wireCompany() {
+      const btn = document.getElementById("editCompanyBtn");
+      if (!btn) return;
+      const modal = new bootstrap.Modal(document.getElementById("companyModal"));
+      btn.addEventListener("click", () => {
+        const c = HR.company.get();
+        const form = document.getElementById("companyForm");
+        Object.keys(form.elements).forEach(() => {});
+        ["legalName", "tradingName", "companiesHouseNumber", "payeReference", "telephone", "generalEmail", "website", "industry", "registeredOffice", "tradingAddress"].forEach((f) => { if (form.elements[f]) form.elements[f].value = c[f] || ""; });
+        modal.show();
+      });
+      document.getElementById("companyForm").onsubmit = (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        HR.company.set(Object.fromEntries(fd.entries()));
+        HR.audit.log({ action: "Company information edited", module: "Company Settings", description: "Company record details were updated." });
+        modal.hide();
+        HR.ui.toastSuccess("Company details saved", "");
+        activate("company");
+      };
+    }
+
+    function wireUsers() {
+      document.getElementById("userRoleSelect").innerHTML = Object.values(HR.enums.ROLES).map((r) => `<option value="${r}">${HR.enums.ROLE_LABELS[r]}</option>`).join("");
+      document.getElementById("userEmployeeSelect").innerHTML += db.employees.all().map((e) => `<option value="${e.id}">${HR.employees.fullName(e)}</option>`).join("");
+
+      const usersTable = HR.ui.initDataTable("#usersTable", {
+        data: db.users.all(),
+        paging: false, info: false,
+        order: [[0, "asc"]],
+        emptyIcon: "bi-person-gear",
+        emptyTitle: "No users found",
+        columns: [
+          { data: "name", className: "cell-primary" },
+          { data: "email" },
+          { data: "role", render: (row) => HR.enums.ROLE_LABELS[row] },
+          { data: null, render: (row) => row.employeeId ? HR.employees.fullName(db.employees.get(row.employeeId)) : "—" },
+          { data: "status", render: (row) => fmt.statusBadge(row) },
+          { data: "id", orderable: false, className: "text-end", render: (row) => `<button class="btn btn-sm btn-light-custom" data-remove-user="${row}" ${row === user.id ? "disabled" : ""}><i class="bi bi-person-dash"></i></button>` }
+        ]
+      });
+
+      const modal = new bootstrap.Modal(document.getElementById("userModal"));
+      document.getElementById("newUserBtn").addEventListener("click", () => { document.getElementById("userForm").reset(); modal.show(); });
+      document.getElementById("userForm").onsubmit = (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        db.users.create({ name: data.name, email: data.email, password: "Password123!", role: data.role, employeeId: data.employeeId || null, status: data.status });
+        HR.audit.log({ action: "User created", module: "Users & Roles", description: `${data.name} added as ${HR.enums.ROLE_LABELS[data.role]}.` });
+        modal.hide();
+        HR.ui.toastSuccess("User added", `${data.name} can now sign in with a temporary password.`);
+        activate("users");
+      };
+      document.querySelector("#usersTable tbody").addEventListener("click", async (e) => {
+        const b = e.target.closest("[data-remove-user]");
+        if (!b || b.disabled) return;
+        const ok = await HR.ui.confirmAction({ title: "Remove User", body: "Are you sure you want to remove this user's system access?", confirmVariant: "danger", confirmLabel: "Remove" });
+        if (!ok) return;
+        db.users.update(b.dataset.removeUser, { status: "Inactive" });
+        HR.audit.log({ action: "User permission changed", module: "Users & Roles", description: "A user account was deactivated." });
+        HR.ui.toastSuccess("User deactivated", "");
+        activate("users");
+      });
+    }
+
+    function wireHr() {
+      HR.ui.initDataTable("#ruleRegisterTable", {
+        data: db.complianceRules.all(),
+        paging: false, info: false, searching: false,
+        order: [[0, "asc"]],
+        columns: [
+          { data: null, render: (row) => `${row.name}<div class="text-meta">${row.description}</div>` },
+          { data: "effectiveDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: null, render: (row) => fmt.date(row.lastChecked) + " by " + row.checkedBy },
+          { data: "status", render: (row) => fmt.statusBadge(row) }
+        ]
+      });
+      HR.ui.initDataTable("#policiesTable", {
+        data: db.policies.all(),
+        paging: false, info: false, searching: false,
+        order: [[0, "asc"]],
+        columns: [
+          { data: "name", className: "cell-primary" },
+          { data: "version", render: (row) => "v" + row },
+          { data: "issueDate", render: (row, type) => type === "display" ? fmt.date(row) : row },
+          { data: "id", orderable: false, render: (row) => { const acks = db.policyAcknowledgements.find((a) => a.policyId === row); const acknowledged = acks.filter((a) => a.status === "Acknowledged").length; return `${acknowledged}/${acks.length}`; } }
+        ]
+      });
+      const modal = new bootstrap.Modal(document.getElementById("policyModal"));
+      document.getElementById("newPolicyBtn").addEventListener("click", () => { document.getElementById("policyForm").reset(); modal.show(); });
+      document.getElementById("policyForm").onsubmit = (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        const policy = db.policies.create({ name: data.name, version: data.version, issueDate: data.issueDate, owner: data.owner, document: data.name + ".pdf", requiresAcknowledgement: data.requiresAcknowledgement === "yes" });
+        db.employees.all().forEach((emp) => db.policyAcknowledgements.create({ employeeId: emp.id, policyId: policy.id, policyVersion: policy.version, issuedDate: policy.issueDate, acknowledgedDate: null, method: "Employee portal acknowledgement", status: "Outstanding" }));
+        HR.audit.log({ action: "Policy created", module: "Policies", description: `${data.name} v${data.version} issued to all employees.` });
+        modal.hide();
+        HR.ui.toastSuccess("Policy added", "The policy has been issued for employee acknowledgement.");
+        activate("hr");
+      };
+    }
+
+    activate(params.get("tab") || "company");
+  });
+  </script>
+</body>
+</html>
