@@ -1,0 +1,149 @@
+// =============================================================================
+// jQuery DataTables — visual integration with the app's design system.
+// The vendor CSS (dataTables.bootstrap5 / responsive.bootstrap5) is purely
+// structural with no hardcoded colours, so it already inherits our palette
+// through Bootstrap's own component classes. These overrides bring the
+// typography, spacing and hover states in line with the rest of the app.
+// =============================================================================
+@use "../abstracts/variables" as v;
+@use "../abstracts/mixins" as m;
+
+// NOTE: DataTables 3.x (Bootstrap 5 build) renders its wrapper elements with
+// "dt-*" class names (dt-container, dt-length, dt-info, dt-paging,
+// dt-processing) — NOT the "dataTables_*" names used by DataTables 1.x/2.x
+// that most third-party guides and Stack Overflow answers still reference.
+.dt-container {
+  width: 100%;
+
+  .table-scroll {
+    @include m.scrollbar-thin;
+  }
+}
+
+table.dataTable {
+  width: 100% !important;
+  margin: 0 !important;
+  font-size: v.$fs-table;
+  border-collapse: separate !important;
+  border-spacing: 0;
+
+  thead th {
+    background: v.$color-bg;
+    color: v.$color-text-secondary;
+    font-weight: v.$fw-semibold;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    padding: 0.7rem v.$space-4 !important;
+    border-bottom: 1px solid v.$color-border !important;
+    border-top: none !important;
+    white-space: nowrap;
+
+    &.sorting, &.sorting_asc, &.sorting_desc {
+      cursor: pointer;
+
+      &:hover { color: v.$color-text; }
+
+      &::before, &::after {
+        color: v.$color-text-muted !important;
+        font-size: 0.85em;
+        bottom: 0.7rem !important;
+      }
+    }
+
+    &.sorting_asc, &.sorting_desc {
+      color: v.$color-secondary;
+
+      &::after { color: v.$color-secondary !important; }
+    }
+  }
+
+  tbody td {
+    padding: 0.7rem v.$space-4 !important;
+    border-bottom: 1px solid v.$color-border !important;
+    color: v.$color-text;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none !important; }
+
+  tbody tr:hover > * { background-color: rgba(107, 107, 36, 0.035) !important; box-shadow: none !important; }
+
+  tbody tr.selected > * { background-color: v.$color-gold-bg !important; }
+
+  &.is-clickable tbody tr { cursor: pointer; }
+
+  .cell-primary { font-weight: v.$fw-medium; color: v.$color-text; }
+  .cell-secondary { color: v.$color-text-secondary; font-size: v.$fs-meta; }
+}
+
+// Meta bar: length menu + info text, sits above the table (below the app's
+// own search/filter toolbar) rather than buried in the footer. -------------------
+.dt-container .table-meta-bar {
+  padding: v.$space-3 v.$space-5;
+  border-bottom: 1px solid v.$color-border;
+  font-size: v.$fs-meta;
+  color: v.$color-text-secondary;
+
+  @include m.respond-down(sm) { padding: v.$space-3 v.$space-4; }
+}
+
+// Footer: pagination only -----------------------------------------------------------
+.dt-container .table-footer {
+  padding: v.$space-3 v.$space-5;
+  border-top: 1px solid v.$color-border;
+  font-size: v.$fs-meta;
+  color: v.$color-text-secondary;
+
+  @include m.respond-down(sm) { padding: v.$space-3 v.$space-4; }
+}
+
+.dt-info { font-size: v.$fs-meta; color: v.$color-text-secondary; padding: 0 !important; }
+
+.dt-paging {
+  .pagination { margin: 0; }
+
+  .page-link {
+    font-size: v.$fs-table;
+    padding: 0.3rem 0.65rem;
+    color: v.$color-text-secondary;
+  }
+
+  // Bootstrap's own compiled .page-item.active already picks up our palette
+  // for the background (see the global $primary override in main.scss), but
+  // its auto contrast-colour calculation landed on a dark text — force white.
+  .page-item.active .page-link {
+    font-weight: v.$fw-medium;
+    color: #fff;
+  }
+
+  .page-item.disabled .page-link {
+    color: v.$color-text-muted;
+  }
+}
+
+.dt-processing {
+  color: v.$color-text-secondary;
+}
+
+.dt-length {
+  display: flex;
+  align-items: center;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: v.$space-2;
+    margin: 0;
+    font-size: v.$fs-meta;
+    color: v.$color-text-secondary;
+    white-space: nowrap;
+  }
+
+  select.form-select {
+    width: auto;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: v.$fs-table;
+  }
+}

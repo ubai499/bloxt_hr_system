@@ -1,0 +1,138 @@
+@use "sass:color";
+@use "../abstracts/variables" as v;
+
+.btn {
+  font-weight: v.$fw-medium;
+  font-size: v.$fs-body;
+  border-radius: v.$radius-sm;
+  padding: 0.5rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: v.$space-2;
+  transition: background-color v.$transition-base, border-color v.$transition-base, box-shadow v.$transition-base;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(107, 107, 36, 0.25);
+  }
+
+  i, .bi {
+    font-size: 1rem;
+    line-height: 1;
+  }
+}
+
+.btn-sm {
+  padding: 0.3rem 0.7rem;
+  font-size: v.$fs-table;
+  border-radius: v.$radius-sm;
+}
+
+.btn-primary {
+  background-color: v.$color-secondary;
+  border-color: v.$color-secondary;
+
+  &:hover, &:focus {
+    background-color: v.$color-primary-dark;
+    border-color: v.$color-primary-dark;
+  }
+}
+
+.btn-outline-primary {
+  color: v.$color-secondary;
+  border-color: v.$color-secondary;
+
+  &:hover {
+    background-color: v.$color-secondary;
+    border-color: v.$color-secondary;
+  }
+}
+
+.btn-accent {
+  background-color: v.$color-accent;
+  border-color: v.$color-accent;
+  color: #fff;
+
+  &:hover, &:focus {
+    background-color: color.adjust(v.$color-accent, $lightness: -6%);
+    border-color: color.adjust(v.$color-accent, $lightness: -6%);
+    color: #fff;
+  }
+}
+
+.btn-light-custom {
+  background-color: #fff;
+  border-color: v.$color-border;
+  color: v.$color-text;
+
+  &:hover {
+    background-color: v.$color-bg;
+    border-color: v.$color-border;
+    color: v.$color-text;
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: v.$color-text-secondary;
+
+  &:hover {
+    background-color: v.$color-bg;
+    color: v.$color-text;
+  }
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: v.$radius-sm;
+}
+
+// Destructive dropdown items (e.g. Sign Out) get a red-tinted hover instead of
+// the default brand olive hover, so the danger text stays readable.
+.dropdown-item.text-danger {
+  &:hover, &:focus {
+    background-color: v.$color-danger-bg;
+    color: v.$color-danger;
+  }
+
+  &:active {
+    background-color: v.$color-danger;
+    color: #fff;
+  }
+}
+
+// Loading / spinner state -----------------------------------------------------
+.btn.is-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    top: calc(50% - 0.5rem);
+    left: calc(50% - 0.5rem);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+  }
+
+  &.btn-outline-primary::after,
+  &.btn-light-custom::after,
+  &.btn-ghost::after {
+    border-color: rgba(v.$color-primary, 0.25);
+    border-top-color: v.$color-primary;
+  }
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}

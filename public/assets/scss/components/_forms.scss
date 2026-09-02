@@ -1,0 +1,158 @@
+@use "../abstracts/variables" as v;
+
+.form-label {
+  font-weight: v.$fw-medium;
+  font-size: v.$fs-body;
+  color: v.$color-text;
+  margin-bottom: 6px;
+
+  .required-indicator {
+    color: v.$color-danger;
+    margin-left: 2px;
+  }
+}
+
+.form-control,
+.form-select {
+  font-size: v.$fs-body;
+  // Only top/bottom/left are set here — Bootstrap's own compiled
+  // .form-select rule reserves extra padding-right for its chevron
+  // background-image; overriding it with a symmetric shorthand (as this
+  // rule used to do) squashed the arrow directly on top of the text.
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  border-color: v.$color-border;
+  border-radius: v.$radius-sm;
+  color: v.$color-text;
+
+  &:focus {
+    border-color: v.$color-secondary;
+    box-shadow: 0 0 0 3px rgba(107, 107, 36, 0.15);
+  }
+
+  &::placeholder { color: v.$color-text-muted; }
+
+  &:disabled, &[readonly] {
+    background-color: v.$color-bg;
+    color: v.$color-text-secondary;
+  }
+}
+
+.form-text-help {
+  font-size: v.$fs-meta;
+  color: v.$color-text-secondary;
+  margin-top: 4px;
+}
+
+.invalid-feedback-custom {
+  font-size: v.$fs-meta;
+  color: v.$color-danger;
+  margin-top: 4px;
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.was-validated-custom,
+.field-invalid {
+  .form-control, .form-select {
+    border-color: v.$color-danger;
+  }
+  .invalid-feedback-custom { display: flex; }
+}
+
+.field-valid {
+  .form-control, .form-select {
+    border-color: v.$color-success;
+  }
+}
+
+fieldset.form-fieldset {
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-lg;
+  padding: v.$space-5;
+  margin-bottom: v.$space-5;
+
+  legend.form-legend {
+    font-size: v.$fs-section-title;
+    font-weight: v.$fw-semibold;
+    padding: 0 v.$space-2;
+    width: auto;
+    float: none;
+    margin-bottom: v.$space-4;
+    color: v.$color-text;
+  }
+}
+
+.form-actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: v.$space-3;
+  padding-top: v.$space-4;
+  margin-top: v.$space-4;
+  border-top: 1px solid v.$color-border;
+
+  @media (max-width: 575.98px) {
+    flex-direction: column-reverse;
+
+    .btn { width: 100%; }
+  }
+}
+
+// Multi-step wizard --------------------------------------------------------------
+.wizard-steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: v.$space-6;
+  list-style: none;
+  padding: 0;
+  overflow-x: auto;
+
+  .wizard-step {
+    display: flex;
+    align-items: center;
+    gap: v.$space-2;
+    flex-shrink: 0;
+    color: v.$color-text-secondary;
+    font-size: v.$fs-meta;
+    font-weight: v.$fw-medium;
+
+    .wizard-step-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid v.$color-border;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: v.$fs-table;
+      color: v.$color-text-secondary;
+      flex-shrink: 0;
+    }
+
+    &.is-active {
+      color: v.$color-primary;
+      .wizard-step-index { border-color: v.$color-secondary; background: v.$color-secondary; color: #fff; }
+    }
+
+    &.is-complete {
+      color: v.$color-text;
+      .wizard-step-index { border-color: v.$color-success; background: v.$color-success-bg; color: v.$color-success; }
+    }
+  }
+
+  .wizard-step-connector {
+    width: 32px;
+    height: 2px;
+    background: v.$color-border;
+    flex-shrink: 0;
+    margin: 0 v.$space-2;
+  }
+
+  @media (max-width: 767.98px) {
+    .wizard-step span.wizard-step-label { display: none; }
+    .wizard-step-connector { width: 16px; }
+  }
+}

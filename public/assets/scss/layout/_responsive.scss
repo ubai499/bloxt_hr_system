@@ -1,0 +1,74 @@
+@use "../abstracts/variables" as v;
+@use "../abstracts/mixins" as m;
+
+// Global overflow guard ------------------------------------------------------------
+html, body { max-width: 100%; overflow-x: hidden; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: v.$space-4;
+
+  @include m.respond-down(xl) { grid-template-columns: repeat(2, 1fr); }
+  @include m.respond-down(sm) { grid-template-columns: 1fr; }
+}
+
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: v.$space-5;
+  align-items: start;
+
+  @include m.respond-down(lg) { grid-template-columns: 1fr; }
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: v.$space-4;
+
+  @include m.respond-down(sm) { grid-template-columns: 1fr; }
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: v.$space-4;
+
+  @include m.respond-down(md) { grid-template-columns: 1fr 1fr; }
+  @include m.respond-down(sm) { grid-template-columns: 1fr; }
+}
+
+@include m.respond-down(sm) {
+  .modal-dialog { margin: v.$space-3; }
+
+  .form-actions-bar .btn { width: 100%; }
+
+  .table-toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+
+    .btn { flex: 1; }
+  }
+
+  .table-toolbar-search { max-width: 100%; flex-basis: 100%; }
+}
+
+@media print {
+  .app-sidebar, .app-header, .no-print, .table-toolbar, .form-actions-bar,
+  .sidebar-backdrop, .toast-stack, .btn { display: none !important; }
+
+  .app-main { margin-left: 0 !important; }
+  .app-content { padding: 0 !important; }
+
+  body { background: #fff !important; }
+
+  .print-header { display: block !important; }
+
+  .panel, .table-panel { box-shadow: none !important; border: 1px solid #ccc !important; }
+
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+}
+
+.print-header { display: none; }

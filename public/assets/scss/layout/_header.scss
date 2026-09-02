@@ -1,0 +1,155 @@
+@use "../abstracts/variables" as v;
+@use "../abstracts/mixins" as m;
+
+.app-header {
+  height: v.$header-height;
+  background: v.$color-surface;
+  border-bottom: 1px solid v.$color-border;
+  display: flex;
+  align-items: center;
+  gap: v.$space-4;
+  padding: 0 v.$space-5;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  flex-shrink: 0;
+}
+
+.header-menu-toggle {
+  display: none;
+  border: none;
+  background: transparent;
+  font-size: 1.3rem;
+  color: v.$color-text;
+  padding: 4px;
+
+  @include m.respond-down(lg) {
+    display: inline-flex;
+  }
+}
+
+.header-search {
+  position: relative;
+  flex: 1;
+  max-width: 420px;
+
+  i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: v.$color-text-muted; }
+
+  input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 34px;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-md;
+    background: v.$color-bg;
+    font-size: v.$fs-body;
+
+    &:focus {
+      outline: none;
+      background: #fff;
+      border-color: v.$color-secondary;
+      box-shadow: 0 0 0 3px rgba(107, 107, 36, 0.12);
+    }
+  }
+
+  @include m.respond-down(md) {
+    display: none;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  margin-left: auto;
+}
+
+.header-icon-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: v.$radius-md;
+  border: none;
+  background: transparent;
+  color: v.$color-text-secondary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+
+  &:hover { background: v.$color-bg; color: v.$color-text; }
+
+  .header-icon-dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: v.$color-danger;
+    border: 1.5px solid #fff;
+  }
+}
+
+.header-user-btn {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  border: none;
+  background: transparent;
+  padding: 4px 6px 4px 4px;
+  border-radius: v.$radius-md;
+
+  &:hover { background: v.$color-bg; }
+
+  .header-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: v.$color-secondary;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: v.$fw-semibold;
+    flex-shrink: 0;
+  }
+
+  .header-user-info {
+    text-align: left;
+    line-height: 1.2;
+
+    @include m.respond-down(sm) { display: none; }
+
+    .header-user-name { font-size: v.$fs-table; font-weight: v.$fw-semibold; color: v.$color-text; }
+    .header-user-role { font-size: 0.6875rem; color: v.$color-text-secondary; }
+  }
+}
+
+.page-header-bar {
+  padding: v.$space-6 v.$space-5 v.$space-5;
+
+  @include m.respond-down(sm) {
+    padding: v.$space-5 v.$space-4 v.$space-4;
+  }
+}
+
+.app-content {
+  padding: 0 v.$space-5 v.$space-6;
+  flex: 1;
+
+  @include m.respond-down(sm) {
+    padding: 0 v.$space-4 v.$space-5;
+  }
+}
+
+.breadcrumb-trail {
+  font-size: v.$fs-meta;
+  color: v.$color-text-secondary;
+  margin-bottom: v.$space-2;
+
+  a { color: v.$color-text-secondary; }
+  a:hover { color: v.$color-secondary; }
+
+  .breadcrumb-sep { margin: 0 6px; }
+}

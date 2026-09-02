@@ -1,0 +1,62 @@
+// =============================================================================
+// Bloxt HR & Employee Compliance Management System
+// Main stylesheet entry point
+// =============================================================================
+
+@use "abstracts/variables" as v;
+
+// Bootstrap variable overrides ----------------------------------------------------------
+// These MUST be plain global variables declared right here, before the
+// `@import` below. `@use "... as v"` above namespaces everything into `v.*`,
+// which Bootstrap's own `!default` variables can never see — declaring them
+// globally here is what actually makes Bootstrap's compiled output (buttons,
+// pagination, checkboxes, dropdowns, badges, etc.) pick up our palette
+// instead of Bootstrap's default blue.
+$primary:    v.$color-secondary;
+$secondary:  v.$color-neutral;
+$success:    v.$color-success;
+$warning:    v.$color-warning;
+$danger:     v.$color-danger;
+$info:       v.$color-info;
+$light:      v.$color-bg;
+$dark:       v.$color-primary;
+
+$body-bg:    v.$color-bg;
+$body-color: v.$color-text;
+
+$border-radius:        v.$radius-md;
+$border-radius-sm:     v.$radius-sm;
+$border-radius-lg:     v.$radius-lg;
+$border-color:         v.$color-border;
+
+$font-family-sans-serif: v.$font-family-base;
+$font-size-base: v.$fs-body;
+
+$enable-shadows: false;
+$enable-negative-margins: true;
+
+// Bootstrap core (now compiles using our palette above) ------------------------------
+@import "../../node_modules/bootstrap/scss/bootstrap";
+
+// Base ---------------------------------------------------------------------------
+@import "base/reset";
+@import "base/typography";
+
+// Components -----------------------------------------------------------------------
+@import "components/buttons";
+@import "components/cards";
+@import "components/tables";
+@import "components/forms";
+@import "components/badges";
+@import "components/modal";
+@import "components/datatables";
+
+// Layout -----------------------------------------------------------------------------
+@import "layout/sidebar";
+@import "layout/header";
+@import "layout/responsive";
+
+// Pages ---------------------------------------------------------------------------------
+@import "pages/dashboard";
+@import "pages/employee";
+@import "pages/compliance";

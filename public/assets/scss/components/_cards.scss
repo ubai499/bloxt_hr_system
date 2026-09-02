@@ -1,0 +1,204 @@
+@use "../abstracts/variables" as v;
+@use "../abstracts/mixins" as m;
+
+.panel {
+  @include m.card-surface;
+  padding: v.$space-5;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: v.$space-3;
+  margin-bottom: v.$space-4;
+
+  .panel-title {
+    font-size: v.$fs-section-title;
+    font-weight: v.$fw-semibold;
+    margin-bottom: 2px;
+  }
+
+  .panel-desc {
+    font-size: v.$fs-meta;
+    color: v.$color-text-secondary;
+  }
+}
+
+// KPI metric card ---------------------------------------------------------------
+.metric-card {
+  @include m.card-surface;
+  padding: v.$space-4 v.$space-5;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-2;
+  min-height: 108px;
+  position: relative;
+
+  .metric-label {
+    font-size: v.$fs-meta;
+    font-weight: v.$fw-medium;
+    color: v.$color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .metric-value {
+    font-size: 1.75rem;
+    font-weight: v.$fw-semibold;
+    color: v.$color-text;
+    line-height: 1.1;
+  }
+
+  .metric-context {
+    font-size: v.$fs-meta;
+    color: v.$color-text-secondary;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .metric-icon {
+    position: absolute;
+    top: v.$space-4;
+    right: v.$space-4;
+    width: 36px;
+    height: 36px;
+    border-radius: v.$radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+  }
+
+  &.metric-accent-primary .metric-icon { background: v.$color-gold-bg; color: v.$color-secondary; }
+  &.metric-accent-success .metric-icon { background: v.$color-success-bg; color: v.$color-success; }
+  &.metric-accent-warning .metric-icon { background: v.$color-warning-bg; color: v.$color-warning; }
+  &.metric-accent-danger .metric-icon { background: v.$color-danger-bg; color: v.$color-danger; }
+  &.metric-accent-neutral .metric-icon { background: v.$color-neutral-bg; color: v.$color-neutral; }
+}
+
+// Action list item (Action Centre / tasks) --------------------------------------
+.action-item {
+  display: flex;
+  gap: v.$space-3;
+  align-items: flex-start;
+  padding: v.$space-3 0;
+  border-bottom: 1px solid v.$color-border;
+
+  &:last-child { border-bottom: none; }
+
+  .action-priority-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .action-body { flex: 1; min-width: 0; }
+
+  .action-title {
+    font-weight: v.$fw-medium;
+    font-size: v.$fs-body;
+    margin-bottom: 2px;
+  }
+
+  .action-meta {
+    font-size: v.$fs-meta;
+    color: v.$color-text-secondary;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+}
+
+// Timeline ---------------------------------------------------------------------
+.timeline {
+  position: relative;
+  padding-left: 28px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: v.$color-border;
+  }
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: v.$space-5;
+
+  &:last-child { padding-bottom: 0; }
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: -28px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: v.$color-secondary;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px v.$color-border;
+  }
+
+  .timeline-date {
+    font-size: v.$fs-meta;
+    color: v.$color-text-secondary;
+    margin-bottom: 2px;
+  }
+
+  .timeline-title {
+    font-weight: v.$fw-medium;
+    margin-bottom: 2px;
+  }
+
+  .timeline-by {
+    font-size: v.$fs-meta;
+    color: v.$color-text-secondary;
+  }
+}
+
+// Empty state ---------------------------------------------------------------------
+.empty-state {
+  text-align: center;
+  padding: v.$space-7 v.$space-4;
+  color: v.$color-text-secondary;
+
+  .empty-state-icon {
+    font-size: 2rem;
+    color: v.$color-text-muted;
+    margin-bottom: v.$space-3;
+  }
+
+  .empty-state-title {
+    font-weight: v.$fw-medium;
+    color: v.$color-text;
+    margin-bottom: 4px;
+  }
+
+  .empty-state-text {
+    font-size: v.$fs-body;
+    max-width: 420px;
+    margin: 0 auto v.$space-4;
+  }
+}
+
+// Skeleton loading ----------------------------------------------------------------
+.skeleton {
+  background: linear-gradient(90deg, v.$color-border 25%, #eef1f5 37%, v.$color-border 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: v.$radius-sm;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
