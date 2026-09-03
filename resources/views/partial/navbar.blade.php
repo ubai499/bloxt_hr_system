@@ -1,9 +1,11 @@
 @php
+    $isAdmin = auth()->user()?->hasRole('admin');
+    $dashboardRoute = $isAdmin ? route('dashboard.admin') : route('dashboard.employee');
     $navGroups = [
         [
             'heading' => 'Overview',
             'items' => [
-                ['label' => 'Dashboard', 'icon' => 'bi-speedometer2', 'href' => route('home'), 'active' => request()->routeIs('home'), 'disabled' => false],
+                ['label' => 'Dashboard', 'icon' => 'bi-speedometer2', 'href' => $dashboardRoute, 'active' => request()->routeIs('dashboard.*'), 'disabled' => false],
             ],
         ],
         [
@@ -42,6 +44,10 @@
             ],
         ],
     ];
+
+    if (! $isAdmin) {
+        $navGroups = array_values(array_filter($navGroups, fn ($group) => ! in_array($group['heading'], ['People', 'Compliance', 'Administration'])));
+    }
 @endphp
 
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>

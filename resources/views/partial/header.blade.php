@@ -15,7 +15,7 @@
     </div>
 
     <div class="header-actions">
-        <a class="btn btn-primary btn-sm" href="{{ route('home') }}">
+        <a class="btn btn-primary btn-sm" href="{{ auth()->user()->hasRole('admin') ? route('dashboard.admin') : route('dashboard.employee') }}">
             <i class="bi bi-speedometer2"></i>
             <span class="d-none d-sm-inline ms-1">Dashboard</span>
         </a>
@@ -31,14 +31,14 @@
                 <span class="header-user-avatar">{{ $initials ?: 'SU' }}</span>
                 <span class="header-user-info">
                     <span class="header-user-name d-block">{{ $user->name }}</span>
-                    <span class="header-user-role d-block">System User</span>
+                    <span class="header-user-role d-block">{{ ucfirst($user->getRoleNames()->first() ?? 'Employee') }}</span>
                 </span>
                 <i class="bi bi-chevron-down d-none d-sm-inline" style="font-size: .7rem; color: #8994A3;"></i>
             </button>
 
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><h6 class="dropdown-header">Signed in as {{ $user->email }}</h6></li>
-                <li><a class="dropdown-item" href="{{ route('home') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li><a class="dropdown-item" href="{{ auth()->user()->hasRole('admin') ? route('dashboard.admin') : route('dashboard.employee') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                 @if (Route::has('password.request'))
                     <li><a class="dropdown-item" href="{{ route('password.request') }}"><i class="bi bi-key me-2"></i>Reset Password</a></li>
                 @endif
