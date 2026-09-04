@@ -28,14 +28,12 @@ class AttendanceController extends Controller
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->status))
             ->when($request->filled('employee'), fn ($query) => $query->where('employee_id', $request->employee))
             ->latest('date')
-            ->paginate(12, ['*'], 'attendance_page')
-            ->withQueryString();
+            ->get();
 
         $absences = AbsenceRecord::query()
             ->with('employee')
             ->latest('date')
-            ->paginate(12, ['*'], 'absence_page')
-            ->withQueryString();
+            ->get();
 
         return view('admin.attendance.index', [
             'attendance' => $attendance,

@@ -24,8 +24,7 @@ class LeaveController extends Controller
             ->when($request->filled('type'), fn ($query) => $query->where('leave_type', $request->type))
             ->when($request->filled('employee'), fn ($query) => $query->where('employee_id', $request->employee))
             ->latest('from_date')
-            ->paginate(12)
-            ->withQueryString();
+            ->get();
 
         return view('admin.leave.index', [
             'leaveRequests' => $leaveRequests,

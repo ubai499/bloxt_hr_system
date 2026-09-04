@@ -19,7 +19,7 @@
                 <h1 class="page-title">Leave</h1>
                 <p class="page-subtitle">Leave requests, approvals and balances.</p>
             </div>
-            <a href="{{ route('admin.leave.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Request Leave</a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#leaveModal"><i class="bi bi-plus-lg"></i> Request Leave</button>
         </div>
     </div>
 
@@ -57,6 +57,18 @@
                 @endforelse
             </tbody></table></div>
         </section>
-        @if ($leaveRequests->hasPages())<div class="mt-4">{{ $leaveRequests->links() }}</div>@endif
+    </div>
+
+    <div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <form method="POST" action="{{ route('admin.leave.store') }}">@csrf
+                <div class="modal-header"><h2 class="modal-title h5">Request Leave</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="form-field mb-3"><label class="form-label">Employee<span class="required-indicator">*</span></label><select class="form-select" name="employee_id" required>@foreach ($employees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</select></div>
+                    <div class="form-grid-2"><div class="form-field"><label class="form-label">Leave type<span class="required-indicator">*</span></label><select class="form-select" name="leave_type">@foreach ($leaveTypes as $type)<option>{{ $type }}</option>@endforeach</select></div><div class="form-field"><label class="form-label d-block">Partial day?</label><label class="form-check form-check-inline"><input class="form-check-input" type="radio" name="partial_day" value="1"> Yes</label><label class="form-check form-check-inline"><input class="form-check-input" type="radio" name="partial_day" value="0" checked> No</label></div><div class="form-field"><label class="form-label">From<span class="required-indicator">*</span></label><input type="date" class="form-control" name="from_date" value="{{ today()->format('Y-m-d') }}" required></div><div class="form-field"><label class="form-label">To<span class="required-indicator">*</span></label><input type="date" class="form-control" name="to_date" value="{{ today()->format('Y-m-d') }}" required></div></div>
+                    <div class="mt-3 form-field"><label class="form-label">Reason</label><input class="form-control" name="reason"></div><div class="mt-3 form-field"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+                </div><div class="modal-footer"><button type="button" class="btn btn-light-custom" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Submit Request</button></div>
+            </form>
+        </div></div>
     </div>
 @endsection

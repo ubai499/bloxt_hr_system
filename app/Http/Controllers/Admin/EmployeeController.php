@@ -160,9 +160,15 @@ class EmployeeController extends Controller
      */
     private function validatedData(Request $request, ?User $employee = null): array
     {
-        $passwordRules = $employee
-            ? ['nullable', 'string', 'min:8', 'confirmed']
-            : ['required', 'string', 'min:8', 'confirmed'];
+        // The onboarding wizard creates the account with a secure temporary password.
+        // Administrators can still set or replace a password through the edit workflow.
+        $passwordRules = ['nullable', 'string', 'min:8', 'confirmed'];
+
+        foreach (['end_date', 'probation_end_date', 'permission_start', 'permission_expiry', 'rtw_check_date', 'rtw_next_review'] as $field) {
+            if ($request->input($field) === '') {
+                $request->merge([$field => null]);
+            }
+        }
 
         $validated = $request->validate([
             'employee_number' => ['nullable', 'string', 'max:50', Rule::unique('users')->ignore($employee)],
