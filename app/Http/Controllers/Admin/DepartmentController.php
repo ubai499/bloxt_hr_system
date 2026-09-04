@@ -37,6 +37,11 @@ class DepartmentController extends Controller
     {
         $department = Department::create($this->validatedData($request));
 
+        if ($request->boolean('return_to_employee_directory')) {
+            return redirect()->route('admin.employees.index', ['tab' => 'departments'])
+                ->with('success', 'Department created successfully.');
+        }
+
         return redirect()->route('admin.departments.show', $department)
             ->with('success', 'Department created successfully.');
     }
@@ -59,6 +64,11 @@ class DepartmentController extends Controller
     public function update(Request $request, Department $department): RedirectResponse
     {
         $department->update($this->validatedData($request, $department));
+
+        if ($request->boolean('return_to_employee_directory')) {
+            return redirect()->route('admin.employees.index', ['tab' => 'departments'])
+                ->with('success', 'Department updated successfully.');
+        }
 
         return redirect()->route('admin.departments.show', $department)
             ->with('success', 'Department updated successfully.');

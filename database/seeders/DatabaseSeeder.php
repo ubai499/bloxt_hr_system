@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Department;
+use App\Models\RightToWorkCheck;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -43,5 +44,16 @@ class DatabaseSeeder extends Seeder
             'status' => 'Active',
         ]);
         $employee->syncRoles('employee');
+
+        RightToWorkCheck::updateOrCreate([
+            'employee_id' => $employee->id,
+            'check_date' => '2025-09-01',
+        ], [
+            'check_method' => 'Manual document check',
+            'performed_by' => 'HR Administrator',
+            'immigration_category' => 'British Citizen',
+            'status' => 'Valid',
+            'evidence_reference' => 'On file',
+        ]);
     }
 }

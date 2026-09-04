@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Department;
+use App\Models\RightToWorkCheck;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -91,5 +92,27 @@ class EmployeeManagementTest extends TestCase
 
         $response->assertRedirect(route('admin.departments.show', $department));
         $this->assertDatabaseHas('departments', ['name' => 'Finance', 'status' => 'Active']);
+    }
+
+    public function test_employee_directory_derives_sponsorship_from_the_latest_right_to_work_check(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $employee = User::factory()->create(['name' => 'Sponsored Employee']);
+        $employee->assignRole('employee');
+
+        RightToWorkCheck::create([
+            'employee_id' => $employee->id,
+            'check_date' => now()->subDay(),
+            'check_method' => 'Online Home Office check',
+            'permission_expiry' => now()->addYear(),
+            'status' => 'Valid',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.employees.index'))
+            ->assertOk()
+            ->assertSee('Sponsored')
+            ->assertSee('data-sponsored="1"', false);
     }
 }

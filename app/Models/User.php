@@ -68,4 +68,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Department::class, 'department_id');
     }
+
+    public function rightToWorkChecks()
+    {
+        return $this->hasMany(RightToWorkCheck::class, 'employee_id');
+    }
+
+    public function latestRightToWorkCheck()
+    {
+        return $this->hasOne(RightToWorkCheck::class, 'employee_id')->latestOfMany('check_date');
+    }
 }

@@ -11,20 +11,22 @@
         [
             'heading' => 'People',
             'items' => [
-                ['label' => 'Employees', 'icon' => 'bi-people', 'href' => route('admin.employees.index'), 'active' => request()->routeIs('admin.employees.*'), 'disabled' => false],
-                ['label' => 'Departments', 'icon' => 'bi-diagram-3', 'href' => route('admin.departments.index'), 'active' => request()->routeIs('admin.departments.*'), 'disabled' => false],
+                ['label' => 'Employees', 'icon' => 'bi-people', 'href' => route('admin.employees.index'), 'active' => request()->routeIs('admin.employees.*') && request('tab') !== 'departments', 'disabled' => false],
+                ['label' => 'Departments', 'icon' => 'bi-diagram-3', 'href' => route('admin.employees.index', ['tab' => 'departments']), 'active' => (request()->routeIs('admin.employees.index') && request('tab') === 'departments') || request()->routeIs('admin.departments.*'), 'disabled' => false],
             ],
         ],
         [
             'heading' => 'Time',
             'items' => [
-                ['label' => 'Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.index'), 'active' => request()->routeIs('admin.attendance.*'), 'disabled' => false],
+                ['label' => 'Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.index'), 'active' => request()->routeIs('admin.attendance.*') && request('tab') !== 'absence', 'disabled' => false],
                 ['label' => 'Leave', 'icon' => 'bi-airplane', 'href' => route('admin.leave.index'), 'active' => request()->routeIs('admin.leave.*'), 'disabled' => false],
+                ['label' => 'Absence', 'icon' => 'bi-clipboard-x', 'href' => route('admin.attendance.index', ['tab' => 'absence']), 'active' => request()->routeIs('admin.attendance.*') && request('tab') === 'absence', 'disabled' => false],
             ],
         ],
         [
             'heading' => 'Employment',
             'items' => [
+                ['label' => 'Contracts', 'icon' => 'bi-file-earmark-text', 'href' => '#', 'active' => false, 'disabled' => true],
                 ['label' => 'Documents', 'icon' => 'bi-folder2-open', 'href' => '#', 'active' => false, 'disabled' => true],
                 ['label' => 'Recruitment', 'icon' => 'bi-person-plus', 'href' => '#', 'active' => false, 'disabled' => true],
             ],
@@ -33,7 +35,23 @@
             'heading' => 'Compliance',
             'items' => [
                 ['label' => 'Right to Work', 'icon' => 'bi-patch-check', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Immigration Records', 'icon' => 'bi-passport', 'href' => '#', 'active' => false, 'disabled' => true],
                 ['label' => 'Sponsor Compliance', 'icon' => 'bi-shield-check', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Compliance Calendar', 'icon' => 'bi-calendar-week', 'href' => '#', 'active' => false, 'disabled' => true],
+            ],
+        ],
+        [
+            'heading' => 'Finance',
+            'items' => [
+                ['label' => 'Salary Records', 'icon' => 'bi-cash-stack', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Payroll Records', 'icon' => 'bi-receipt', 'href' => '#', 'active' => false, 'disabled' => true],
+            ],
+        ],
+        [
+            'heading' => 'Insights',
+            'items' => [
+                ['label' => 'Reports', 'icon' => 'bi-bar-chart', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Audit Log', 'icon' => 'bi-journal-text', 'href' => '#', 'active' => false, 'disabled' => true],
             ],
         ],
         [
@@ -41,12 +59,13 @@
             'items' => [
                 ['label' => 'Users & Roles', 'icon' => 'bi-person-gear', 'href' => '#', 'active' => false, 'disabled' => true],
                 ['label' => 'Company Settings', 'icon' => 'bi-building', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'HR Settings', 'icon' => 'bi-sliders', 'href' => '#', 'active' => false, 'disabled' => true],
             ],
         ],
     ];
 
     if (! $isAdmin) {
-        $navGroups = array_values(array_filter($navGroups, fn ($group) => ! in_array($group['heading'], ['People', 'Compliance', 'Administration'])));
+        $navGroups = array_values(array_filter($navGroups, fn ($group) => ! in_array($group['heading'], ['People', 'Compliance', 'Finance', 'Insights', 'Administration'])));
     }
 @endphp
 

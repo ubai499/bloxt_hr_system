@@ -5,37 +5,50 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class EmployeeController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|StreamedResponse
     {
-        $employees = User::role('employee')
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $search = $request->string('search')->trim();
+        $activeTab = $request->query('tab') === 'departments' ? 'departments' : 'directory';
+        $employeeQuery = $this->employeeIndexQuery($request)
+            ->with(['manager', 'departmentRecord', 'latestRightToWorkCheck'])
+            ->orderBy('name');
 
-                $query->where(function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('employee_number', 'like', "%{$search}%")
-                        ->orWhere('job_title', 'like', "%{$search}%");
-                });
-            })
-            ->when($request->filled('department'), fn ($query) => $query->where('department_id', $request->department))
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->status))
-            ->with(['manager', 'departmentRecord'])
-            ->orderBy('name')
-            ->paginate(12)
-            ->withQueryString();
+        if ($request->boolean('export')) {
+            return $this->exportEmployees($employeeQuery->get());
+        }
+
+        $employees = $employeeQuery->get();
 
         return view('admin.employees.index', [
             'employees' => $employees,
-            'departments' => Department::query()->orderBy('name')->get(),
+            'departments' => Department::query()
+                ->withCount([
+                    'employees' => fn (Builder $query) => $query->role('employee'),
+                ])
+                ->orderBy('name')
+                ->get(),
+            'employmentTypes' => User::role('employee')
+                ->whereNotNull('employment_type')
+                ->where('employment_type', '!=', '')
+                ->distinct()
+                ->orderBy('employment_type')
+                ->pluck('employment_type'),
+            'workLocations' => User::role('employee')
+                ->whereNotNull('work_location')
+                ->where('work_location', '!=', '')
+                ->distinct()
+                ->orderBy('work_location')
+                ->pluck('work_location'),
+            'activeTab' => $activeTab,
         ]);
     }
 
@@ -152,5 +165,71 @@ class EmployeeController extends Controller
     private function ensureEmployee(User $employee): void
     {
         abort_unless($employee->hasRole('employee'), 404);
+    }
+
+    private function employeeIndexQuery(Request $request): Builder
+    {
+        $search = trim((string) $request->input('search'));
+
+        return User::role('employee')
+            ->when($search !== '', function (Builder $query) use ($search) {
+                $query->where(function (Builder $query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('employee_number', 'like', "%{$search}%")
+                        ->orWhere('job_title', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('department'), fn (Builder $query) => $query->where('department_id', $request->department))
+            ->when($request->filled('status'), fn (Builder $query) => $query->where('status', $request->status))
+            ->when($request->filled('work_location'), fn (Builder $query) => $query->where('work_location', $request->work_location))
+            ->when($request->filled('employment_type'), fn (Builder $query) => $query->where('employment_type', $request->employment_type))
+            ->when($request->boolean('sponsored'), function (Builder $query) {
+                $query->whereHas('latestRightToWorkCheck', function (Builder $query) {
+                    $query->where('check_method', 'Online Home Office check')
+                        ->whereNotNull('permission_expiry');
+                });
+            });
+    }
+
+    private function exportEmployees($employees): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($employees) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Employee ID',
+                'Employee',
+                'Email',
+                'Job Title',
+                'Department',
+                'Manager',
+                'Employment Type',
+                'Work Location',
+                'Start Date',
+                'Status',
+                'Right to Work',
+            ]);
+
+            foreach ($employees as $employee) {
+                fputcsv($handle, [
+                    $employee->employee_number,
+                    $employee->name,
+                    $employee->email,
+                    $employee->job_title,
+                    $employee->departmentRecord?->name,
+                    $employee->manager?->name,
+                    $employee->employment_type,
+                    $employee->work_location,
+                    $employee->start_date?->format('Y-m-d'),
+                    $employee->status,
+                    $employee->latestRightToWorkCheck?->directoryStatus() ?? 'Evidence Missing',
+                ]);
+            }
+
+            fclose($handle);
+        }, 'employee-directory.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 }
