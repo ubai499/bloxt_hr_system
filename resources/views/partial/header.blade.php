@@ -15,7 +15,7 @@
     </div>
 
     <div class="header-actions">
-        <a class="btn btn-primary btn-sm" href="{{ auth()->user()->hasRole('admin') ? route('dashboard.admin') : route('dashboard.employee') }}">
+        <a class="btn btn-primary btn-sm" href="{{ auth()->user()->hasRole('admin') ? route('admin.dashboard') : route('employee.dashboard') }}">
             <i class="bi bi-speedometer2"></i>
             <span class="d-none d-sm-inline ms-1">Dashboard</span>
         </a>
@@ -38,7 +38,7 @@
 
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><h6 class="dropdown-header">Signed in as {{ $user->email }}</h6></li>
-                <li><a class="dropdown-item" href="{{ auth()->user()->hasRole('admin') ? route('dashboard.admin') : route('dashboard.employee') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li><a class="dropdown-item" href="{{ auth()->user()->hasRole('admin') ? route('admin.dashboard') : route('employee.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                 @if (Route::has('password.request'))
                     <li><a class="dropdown-item" href="{{ route('password.request') }}"><i class="bi bi-key me-2"></i>Reset Password</a></li>
                 @endif

@@ -32,14 +32,14 @@
             <div class="metric-card metric-accent-primary">
                 <span class="metric-icon"><i class="bi bi-people"></i></span>
                 <span class="metric-label">Total Employees</span>
-                <span class="metric-value">128</span>
-                <span class="metric-context">Across 8 departments</span>
+                <span class="metric-value">{{ $employeeCount }}</span>
+                <span class="metric-context">Employee records in Bloxt HR</span>
             </div>
             <div class="metric-card metric-accent-success">
                 <span class="metric-icon"><i class="bi bi-person-check"></i></span>
                 <span class="metric-label">Active Employees</span>
-                <span class="metric-value">119</span>
-                <span class="metric-context">9 on leave or probation</span>
+                <span class="metric-value">{{ $activeEmployeeCount }}</span>
+                <span class="metric-context">Currently marked active</span>
             </div>
             <div class="metric-card metric-accent-warning">
                 <span class="metric-icon"><i class="bi bi-file-earmark-text"></i></span>
@@ -76,7 +76,7 @@
                                 <span><i class="bi bi-person-check"></i> HR Administrator</span>
                             </div>
                         </div>
-                        <a href="{{ route('home') }}" class="btn btn-sm btn-light-custom">Review</a>
+                        <a href="{{ route('admin.employees.index') }}" class="btn btn-sm btn-light-custom">Review</a>
                     </div>
 
                     <div class="action-item">
@@ -89,7 +89,7 @@
                                 <span><i class="bi bi-person-check"></i> People Operations</span>
                             </div>
                         </div>
-                        <a href="{{ route('home') }}" class="btn btn-sm btn-light-custom">Review</a>
+                        <a href="{{ route('admin.employees.index') }}" class="btn btn-sm btn-light-custom">Review</a>
                     </div>
 
                     <div class="action-item">

@@ -20,9 +20,19 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'employee_number',
         'name',
         'email',
         'password',
+        'job_title',
+        'department_id',
+        'employment_type',
+        'work_location',
+        'manager_id',
+        'start_date',
+        'phone',
+        'status',
+        'address',
     ];
 
     /**
@@ -44,7 +54,18 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'start_date' => 'date',
             'password' => 'hashed',
         ];
+    }
+
+    public function manager()
+    {
+        return $this->belongsTo(self::class, 'manager_id');
+    }
+
+    public function departmentRecord()
+    {
+        return $this->belongsTo(Department::class, 'department_id');
     }
 }

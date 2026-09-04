@@ -4,7 +4,7 @@
 @section('meta_description', 'Employee self-service dashboard for Bloxt People and Compliance.')
 
 @section('content')
-    @php $firstName = strtok(auth()->user()->name ?? 'there', ' '); @endphp
+    @php $firstName = strtok($employee->name ?? 'there', ' '); @endphp
     <div class="page-header-bar">
         <div class="greeting-header">
             <div>
@@ -34,7 +34,7 @@
                 <section class="panel"><div class="panel-header"><div class="panel-title">Upcoming Time Off</div></div><div class="empty-state py-4"><div class="empty-state-icon"><i class="bi bi-airplane"></i></div><div class="empty-state-title">No upcoming leave</div><div class="empty-state-text">Approved leave will appear here.</div></div></section>
             </div>
             <div>
-                <section class="panel mb-5"><div class="panel-header"><div class="panel-title">At a Glance</div></div><dl class="detail-grid"><div class="detail-item"><dt>Manager</dt><dd>HR Administrator</dd></div><div class="detail-item"><dt>Department</dt><dd>Operations</dd></div><div class="detail-item"><dt>Employment Status</dt><dd><span class="employee-status">Active</span></dd></div><div class="detail-item"><dt>System Role</dt><dd>Employee</dd></div></dl></section>
+                <section class="panel mb-5"><div class="panel-header"><div class="panel-title">At a Glance</div></div><dl class="detail-grid"><div class="detail-item"><dt>Manager</dt><dd>{{ $employee->manager?->name ?: 'Not assigned' }}</dd></div><div class="detail-item"><dt>Department</dt><dd>{{ $employee->departmentRecord?->name ?: 'Not recorded' }}</dd></div><div class="detail-item"><dt>Employment Status</dt><dd><span class="employee-status">{{ $employee->status ?: 'Active' }}</span></dd></div><div class="detail-item"><dt>Job Title</dt><dd>{{ $employee->job_title ?: 'Not recorded' }}</dd></div></dl></section>
                 <section class="panel"><div class="panel-header"><div class="panel-title">Company Updates</div></div><div class="timeline"><div class="timeline-item"><div class="timeline-date">Today</div><div class="timeline-title">Welcome to your Bloxt employee dashboard</div><div class="timeline-by">Your self-service workspace is ready.</div></div><div class="timeline-item"><div class="timeline-date">This week</div><div class="timeline-title">September payroll cut-off</div><div class="timeline-by">Submit approved changes before 18 September.</div></div></div></section>
             </div>
         </div>

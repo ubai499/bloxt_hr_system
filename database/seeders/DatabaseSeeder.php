@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -21,16 +22,25 @@ class DatabaseSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         Role::findOrCreate('admin');
         Role::findOrCreate('employee');
+        $operations = Department::firstOrCreate(['name' => 'Operations'], ['status' => 'Active']);
 
-        $admin = User::updateOrCreate(['email' => 'admin@bloxt.test'], [
+        $admin = User::updateOrCreate(['email' => 'admin@admin.com'], [
             'name' => 'HR Administrator',
             'password' => Hash::make('password'),
         ]);
         $admin->syncRoles('admin');
 
-        $employee = User::updateOrCreate(['email' => 'employee@bloxt.test'], [
+        $employee = User::updateOrCreate(['email' => 'employee@employee.com'], [
             'name' => 'Alex Morgan',
             'password' => Hash::make('password'),
+            'employee_number' => 'BXT-001',
+            'job_title' => 'Operations Coordinator',
+            'department_id' => $operations->id,
+            'employment_type' => 'Full-time',
+            'work_location' => 'London',
+            'start_date' => '2025-09-01',
+            'phone' => '020 7946 0100',
+            'status' => 'Active',
         ]);
         $employee->syncRoles('employee');
     }

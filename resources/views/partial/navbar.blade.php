@@ -1,25 +1,25 @@
 @php
     $isAdmin = auth()->user()?->hasRole('admin');
-    $dashboardRoute = $isAdmin ? route('dashboard.admin') : route('dashboard.employee');
+    $dashboardRoute = $isAdmin ? route('admin.dashboard') : route('employee.dashboard');
     $navGroups = [
         [
             'heading' => 'Overview',
             'items' => [
-                ['label' => 'Dashboard', 'icon' => 'bi-speedometer2', 'href' => $dashboardRoute, 'active' => request()->routeIs('dashboard.*'), 'disabled' => false],
+                ['label' => 'Dashboard', 'icon' => 'bi-speedometer2', 'href' => $dashboardRoute, 'active' => request()->routeIs('*.dashboard'), 'disabled' => false],
             ],
         ],
         [
             'heading' => 'People',
             'items' => [
-                ['label' => 'Employees', 'icon' => 'bi-people', 'href' => '#', 'active' => false, 'disabled' => true],
-                ['label' => 'Departments', 'icon' => 'bi-diagram-3', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Employees', 'icon' => 'bi-people', 'href' => route('admin.employees.index'), 'active' => request()->routeIs('admin.employees.*'), 'disabled' => false],
+                ['label' => 'Departments', 'icon' => 'bi-diagram-3', 'href' => route('admin.departments.index'), 'active' => request()->routeIs('admin.departments.*'), 'disabled' => false],
             ],
         ],
         [
             'heading' => 'Time',
             'items' => [
-                ['label' => 'Attendance', 'icon' => 'bi-calendar-check', 'href' => '#', 'active' => false, 'disabled' => true],
-                ['label' => 'Leave', 'icon' => 'bi-airplane', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.index'), 'active' => request()->routeIs('admin.attendance.*'), 'disabled' => false],
+                ['label' => 'Leave', 'icon' => 'bi-airplane', 'href' => route('admin.leave.index'), 'active' => request()->routeIs('admin.leave.*'), 'disabled' => false],
             ],
         ],
         [
