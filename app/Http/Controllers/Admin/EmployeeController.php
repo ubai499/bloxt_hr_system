@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Department;
+use App\Models\EmployeeCompensation;
+use App\Models\RightToWorkCheck;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -67,10 +70,41 @@ class EmployeeController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validatedData($request);
-        $employee = User::create($validated + ['password' => $request->input('password')]);
+        $employee = DB::transaction(function () use ($request, $validated) {
+            $employee = User::create($validated + ['password' => $request->input('password')]);
+            Role::findOrCreate('employee');
+            $employee->assignRole('employee');
 
-        Role::findOrCreate('employee');
-        $employee->assignRole('employee');
+            if ($request->filled('annual_salary') && $request->filled('salary_effective_date')) {
+                EmployeeCompensation::create([
+                    'employee_id' => $employee->id,
+                    'annual_salary' => $request->input('annual_salary'),
+                    'salary_frequency' => $request->input('salary_frequency', 'Annual'),
+                    'hourly_rate' => $request->input('hourly_rate'),
+                    'effective_date' => $request->input('salary_effective_date'),
+                    'reason' => $request->input('salary_reason'),
+                    'authorised_by' => $request->input('authorised_by'),
+                ]);
+            }
+
+            if ($request->input('rtw_required') === 'yes') {
+                RightToWorkCheck::create([
+                    'employee_id' => $employee->id,
+                    'check_date' => $request->input('rtw_check_date'),
+                    'check_method' => $request->input('rtw_check_type'),
+                    'performed_by' => $request->input('rtw_checked_by'),
+                    'immigration_category' => $request->input('immigration_status'),
+                    'permission_start' => $request->input('permission_start'),
+                    'permission_expiry' => $request->input('permission_expiry'),
+                    'follow_up_required' => $request->input('rtw_follow_up') === 'yes',
+                    'next_check_date' => $request->input('rtw_next_review'),
+                    'evidence_reference' => $request->input('evidence_reference'),
+                    'status' => $request->input('permission_expiry') ? 'Review Due' : 'Valid',
+                    'notes' => $request->input('rtw_notes'),
+                ]);
+            }
+            return $employee;
+        });
 
         return redirect()->route('admin.employees.show', $employee)
             ->with('success', 'Employee created successfully. They can now sign in with their email and password.');
@@ -136,13 +170,34 @@ class EmployeeController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($employee)],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string'],
+            'personal_email' => ['nullable', 'email', 'max:255'],
+            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'nationality' => ['nullable', 'string', 'max:255'],
+            'postcode' => ['nullable', 'string', 'max:20'],
+            'emergency_contact_name' => ['nullable', 'string', 'max:255'],
+            'emergency_contact_relationship' => ['nullable', 'string', 'max:255'],
+            'emergency_contact_phone' => ['nullable', 'string', 'max:50'],
             'job_title' => ['required', 'string', 'max:255'],
             'department_id' => ['required', 'exists:departments,id'],
             'employment_type' => ['required', Rule::in(['Full-time', 'Part-time', 'Contract', 'Temporary'])],
             'work_location' => ['nullable', 'string', 'max:255'],
             'manager_id' => ['nullable', 'exists:users,id', Rule::notIn([$employee?->id])],
             'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'probation_end_date' => ['nullable', 'date'],
+            'work_arrangement' => ['nullable', Rule::in(['Office-based', 'Hybrid', 'Remote'])],
+            'weekly_hours' => ['nullable', 'numeric', 'min:0', 'max:168'],
+            'normal_working_hours' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['Active', 'On Leave', 'Probation', 'Left'])],
+            'annual_salary' => ['nullable', 'numeric', 'min:0'],
+            'salary_frequency' => ['nullable', Rule::in(['Annual', 'Hourly', 'Monthly'])],
+            'hourly_rate' => ['nullable', 'numeric', 'min:0'],
+            'salary_effective_date' => ['nullable', 'date'],
+            'rtw_required' => ['nullable', Rule::in(['yes', 'no'])],
+            'rtw_check_type' => ['nullable', Rule::in(['Online Home Office check', 'Manual document check', 'Other permitted method'])],
+            'rtw_check_date' => ['nullable', 'date'],
+            'permission_start' => ['nullable', 'date'],
+            'permission_expiry' => ['nullable', 'date', 'after_or_equal:permission_start'],
             'password' => $passwordRules,
         ]);
 
@@ -152,12 +207,24 @@ class EmployeeController extends Controller
             'email' => trim($validated['email']),
             'phone' => filled($validated['phone'] ?? null) ? trim($validated['phone']) : null,
             'address' => filled($validated['address'] ?? null) ? trim($validated['address']) : null,
+            'personal_email' => filled($validated['personal_email'] ?? null) ? trim($validated['personal_email']) : null,
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
+            'nationality' => filled($validated['nationality'] ?? null) ? trim($validated['nationality']) : null,
+            'postcode' => filled($validated['postcode'] ?? null) ? trim($validated['postcode']) : null,
+            'emergency_contact_name' => filled($validated['emergency_contact_name'] ?? null) ? trim($validated['emergency_contact_name']) : null,
+            'emergency_contact_relationship' => filled($validated['emergency_contact_relationship'] ?? null) ? trim($validated['emergency_contact_relationship']) : null,
+            'emergency_contact_phone' => filled($validated['emergency_contact_phone'] ?? null) ? trim($validated['emergency_contact_phone']) : null,
             'job_title' => trim($validated['job_title']),
             'department_id' => $validated['department_id'],
             'employment_type' => $validated['employment_type'],
             'work_location' => filled($validated['work_location'] ?? null) ? trim($validated['work_location']) : null,
             'manager_id' => $validated['manager_id'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+            'probation_end_date' => $validated['probation_end_date'] ?? null,
+            'work_arrangement' => $validated['work_arrangement'] ?? null,
+            'weekly_hours' => $validated['weekly_hours'] ?? null,
+            'normal_working_hours' => filled($validated['normal_working_hours'] ?? null) ? trim($validated['normal_working_hours']) : null,
             'status' => $validated['status'],
         ];
     }

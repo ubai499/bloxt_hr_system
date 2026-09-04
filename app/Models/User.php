@@ -33,6 +33,18 @@ class User extends Authenticatable
         'phone',
         'status',
         'address',
+        'personal_email',
+        'date_of_birth',
+        'nationality',
+        'postcode',
+        'emergency_contact_name',
+        'emergency_contact_relationship',
+        'emergency_contact_phone',
+        'end_date',
+        'probation_end_date',
+        'work_arrangement',
+        'weekly_hours',
+        'normal_working_hours',
     ];
 
     /**
@@ -55,6 +67,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'start_date' => 'date',
+            'end_date' => 'date',
+            'probation_end_date' => 'date',
+            'date_of_birth' => 'date',
             'password' => 'hashed',
         ];
     }
