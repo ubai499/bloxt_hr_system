@@ -91,10 +91,6 @@
                 <button type="submit" class="btn btn-primary w-100">Sign In</button>
             </form>
 
-            <div class="demo-credentials-box">
-                This theme is now wired into Laravel auth. Use an account from your application database to sign in.
-            </div>
-
             <p class="login-footer-note">Authorised company users only. Unauthorised access is prohibited.</p>
         </div>
     </div>

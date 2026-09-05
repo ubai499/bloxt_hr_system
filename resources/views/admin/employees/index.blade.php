@@ -126,7 +126,7 @@
                                 <th>Start Date</th>
                                 <th>Status</th>
                                 <th>Right-to-Work</th>
-                                <th></th>
+                                <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,8 +170,13 @@
                                         @endif
                                         <span class="status-badge {{ $statusClass($rightToWorkStatus) }}">{{ $rightToWorkStatus }}</span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end text-nowrap">
                                         <a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-sm btn-light-custom">View</a>
+                                        <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-sm btn-light-custom" title="Edit employee"><i class="bi bi-pencil"></i></a>
+                                        <form method="POST" action="{{ route('admin.employees.destroy', $employee) }}" class="d-inline" onsubmit="return confirm('Delete {{ addslashes($employee->name) }} and their login account?')">
+                                            @csrf @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete employee"><i class="bi bi-trash"></i></button>
+                                        </form>
                                     </td>
                                 </tr>
                             @empty
@@ -213,7 +218,7 @@
                                 <th>Department</th>
                                 <th>Headcount</th>
                                 <th>Status</th>
-                                <th></th>
+                                <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -222,7 +227,8 @@
                                     <td class="cell-primary">{{ $department->name }}</td>
                                     <td>{{ $department->employees_count }}</td>
                                     <td><span class="status-badge {{ $department->status === 'Active' ? 'badge-success' : 'badge-warning' }}">{{ $department->status }}</span></td>
-                                    <td class="text-end">
+                                    <td class="text-end text-nowrap">
+                                        <a href="{{ route('admin.departments.show', $department) }}" class="btn btn-sm btn-light-custom">View</a>
                                         <button
                                             type="button"
                                             class="btn btn-sm btn-light-custom"
@@ -232,9 +238,13 @@
                                             data-dept-name="{{ $department->name }}"
                                             data-dept-status="{{ $department->status }}"
                                             data-dept-update-url="{{ route('admin.departments.update', $department) }}"
-                                        >
+                                        title="Edit department">
                                             <i class="bi bi-pencil"></i>
                                         </button>
+                                        <form method="POST" action="{{ route('admin.departments.destroy', $department) }}" class="d-inline" onsubmit="return confirm('Delete {{ addslashes($department->name) }}? Employees must be reassigned first.')">
+                                            @csrf @method('DELETE')
+                                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete department"><i class="bi bi-trash"></i></button>
+                                        </form>
                                     </td>
                                 </tr>
                             @empty

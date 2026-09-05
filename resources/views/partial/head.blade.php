@@ -52,6 +52,14 @@
             padding: 0 1.5rem 1.5rem;
         }
 
+        /* Keep adjacent row actions visually distinct without widening tables unnecessarily. */
+        .table-app td.text-end > .btn + .btn,
+        .table-app td.text-end > .btn + form,
+        .table-app td.text-end > form + .btn,
+        .table-app td.text-end > form + form {
+            margin-left: 0.35rem;
+        }
+
         @media (min-width: 992px) {
             .portal-footer {
                 padding: 0 2rem 2rem;

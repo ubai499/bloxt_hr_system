@@ -27,13 +27,13 @@ class DatabaseSeeder extends Seeder
 
         $admin = User::updateOrCreate(['email' => 'admin@admin.com'], [
             'name' => 'HR Administrator',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('1234'),
         ]);
         $admin->syncRoles('admin');
 
         $employee = User::updateOrCreate(['email' => 'employee@employee.com'], [
             'name' => 'Alex Morgan',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('1234'),
             'employee_number' => 'BXT-001',
             'job_title' => 'Operations Coordinator',
             'department_id' => $operations->id,

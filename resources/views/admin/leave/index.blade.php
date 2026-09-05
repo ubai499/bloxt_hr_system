@@ -43,7 +43,7 @@
                     @if (request()->hasAny(['status', 'type', 'employee']))<a class="btn btn-sm btn-ghost" href="{{ route('admin.leave.index') }}">Clear</a>@endif
                 </div>
             </form>
-            <div class="table-responsive"><table class="table-app"><thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Approved By</th><th></th></tr></thead><tbody>
+            <div class="table-responsive"><table class="table-app"><thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th>Approved By</th><th class="text-end">Actions</th></tr></thead><tbody>
                 @forelse ($leaveRequests as $leaveRequest)
                     <tr><td class="cell-primary">{{ $leaveRequest->employee->name }}</td><td>{{ $leaveRequest->leave_type }}{{ $leaveRequest->partial_day ? ' (Partial day)' : '' }}</td><td>{{ $leaveRequest->from_date->format('d M Y') }}</td><td>{{ $leaveRequest->to_date->format('d M Y') }}</td><td class="cell-secondary">{{ $leaveRequest->reason ?: '-' }}</td><td><span class="status-badge {{ $statusClass($leaveRequest->status) }}">{{ $leaveRequest->status }}</span></td><td>{{ $leaveRequest->approved_by ?: '-' }}</td><td class="text-end">
                         @if ($leaveRequest->status === 'Pending')
@@ -51,6 +51,7 @@
                             <form method="POST" action="{{ route('admin.leave.status.update', $leaveRequest) }}" class="d-inline">@csrf @method('PATCH')<input type="hidden" name="status" value="Rejected"><button class="btn btn-sm btn-light-custom" type="submit">Reject</button></form>
                         @endif
                         <a href="{{ route('admin.leave.edit', $leaveRequest) }}" class="btn btn-sm btn-light-custom ms-1">Edit</a>
+                        <form method="POST" action="{{ route('admin.leave.destroy', $leaveRequest) }}" class="d-inline" onsubmit="return confirm('Delete this leave request?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" type="submit" title="Delete leave request"><i class="bi bi-trash"></i></button></form>
                     </td></tr>
                 @empty
                     <tr><td colspan="8" class="text-center py-5 text-meta"><i class="bi bi-airplane d-block fs-3 mb-2"></i>No leave requests found. Create a request to begin the approval workflow.</td></tr>

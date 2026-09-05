@@ -160,6 +160,8 @@ class AttendanceController extends Controller
             'status' => ['required', Rule::in(self::ATTENDANCE_STATUSES)],
             'notes' => ['nullable', 'string'],
             'manager_reviewed' => ['nullable', 'boolean'],
+        ], [
+            'employee_id.unique' => 'An attendance record already exists for this employee on the selected date.',
         ]);
 
         $this->ensureEmployee($validated['employee_id']);

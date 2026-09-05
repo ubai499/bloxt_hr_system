@@ -35,7 +35,7 @@
             <div class="table-toolbar"><div><span class="fw-semibold">Employees in this department</span></div><div class="table-toolbar-actions"><a href="{{ route('admin.employees.create') }}" class="btn btn-sm btn-light-custom"><i class="bi bi-person-plus"></i> Add Employee</a></div></div>
             <div class="table-responsive">
                 <table class="table-app">
-                    <thead><tr><th>Employee</th><th>Job Title</th><th>Email</th><th>Status</th><th></th></tr></thead>
+                    <thead><tr><th>Employee</th><th>Job Title</th><th>Email</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
                     <tbody>
                         @forelse ($employees as $employee)
                             <tr>
@@ -43,7 +43,7 @@
                                 <td>{{ $employee->job_title }}</td>
                                 <td>{{ $employee->email }}</td>
                                 <td><span class="status-badge {{ $employee->status === 'Active' ? 'badge-success' : 'badge-warning' }}">{{ $employee->status }}</span></td>
-                                <td class="text-end"><a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-sm btn-light-custom">View</a></td>
+                                <td class="text-end text-nowrap"><a href="{{ route('admin.employees.show', $employee) }}" class="btn btn-sm btn-light-custom">View</a><a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-sm btn-light-custom" title="Edit employee"><i class="bi bi-pencil"></i></a><form method="POST" action="{{ route('admin.employees.destroy', $employee) }}" class="d-inline" onsubmit="return confirm('Delete {{ addslashes($employee->name) }} and their login account?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" type="submit" title="Delete employee"><i class="bi bi-trash"></i></button></form></td>
                             </tr>
                         @empty
                             <tr><td colspan="5" class="text-center py-5 text-meta">No employees are assigned to this department.</td></tr>

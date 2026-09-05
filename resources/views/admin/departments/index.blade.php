@@ -42,14 +42,14 @@
 
             <div class="table-responsive">
                 <table class="table-app">
-                    <thead><tr><th>Department</th><th>Headcount</th><th>Status</th><th></th></tr></thead>
+                    <thead><tr><th>Department</th><th>Headcount</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
                     <tbody>
                         @forelse ($departments as $department)
                             <tr>
                                 <td class="cell-primary">{{ $department->name }}</td>
                                 <td>{{ $department->employees_count }}</td>
                                 <td><span class="status-badge {{ $department->status === 'Active' ? 'badge-success' : 'badge-warning' }}">{{ $department->status }}</span></td>
-                                <td class="text-end"><a href="{{ route('admin.departments.show', $department) }}" class="btn btn-sm btn-light-custom">View</a></td>
+                                <td class="text-end text-nowrap"><a href="{{ route('admin.departments.show', $department) }}" class="btn btn-sm btn-light-custom">View</a><a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-sm btn-light-custom" title="Edit department"><i class="bi bi-pencil"></i></a><form method="POST" action="{{ route('admin.departments.destroy', $department) }}" class="d-inline" onsubmit="return confirm('Delete {{ addslashes($department->name) }}? Employees must be reassigned first.')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" type="submit" title="Delete department"><i class="bi bi-trash"></i></button></form></td>
                             </tr>
                         @empty
                             <tr><td colspan="4" class="text-center py-5 text-meta"><i class="bi bi-diagram-3 d-block fs-3 mb-2"></i>No departments found. Add a department before creating employee records.</td></tr>

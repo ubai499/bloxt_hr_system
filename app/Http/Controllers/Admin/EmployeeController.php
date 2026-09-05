@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -71,7 +72,11 @@ class EmployeeController extends Controller
     {
         $validated = $this->validatedData($request);
         $employee = DB::transaction(function () use ($request, $validated) {
-            $employee = User::create($validated + ['password' => $request->input('password')]);
+            // The wizard has no password field; provision a secure temporary credential.
+            $validated['password'] = $request->filled('password')
+                ? $request->input('password')
+                : Str::random(32);
+            $employee = User::create($validated);
             Role::findOrCreate('employee');
             $employee->assignRole('employee');
 
