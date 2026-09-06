@@ -39,11 +39,11 @@ class DepartmentController extends Controller
 
         if ($request->boolean('return_to_employee_directory')) {
             return redirect()->route('admin.employees.index', ['tab' => 'departments'])
-                ->with('success', 'Department created successfully.');
+                ->with('success', 'Department created successfully.')->with('toast_title', 'Department created');
         }
 
         return redirect()->route('admin.departments.show', $department)
-            ->with('success', 'Department created successfully.');
+            ->with('success', 'Department created successfully.')->with('toast_title', 'Department created');
     }
 
     public function show(Department $department): View
@@ -67,11 +67,11 @@ class DepartmentController extends Controller
 
         if ($request->boolean('return_to_employee_directory')) {
             return redirect()->route('admin.employees.index', ['tab' => 'departments'])
-                ->with('success', 'Department updated successfully.');
+                ->with('success', 'Department updated successfully.')->with('toast_title', 'Department updated');
         }
 
         return redirect()->route('admin.departments.show', $department)
-            ->with('success', 'Department updated successfully.');
+            ->with('success', 'Department updated successfully.')->with('toast_title', 'Department updated');
     }
 
     public function destroy(Department $department): RedirectResponse
@@ -83,7 +83,7 @@ class DepartmentController extends Controller
 
         $department->delete();
 
-        return redirect()->route('admin.departments.index')->with('success', 'Department deleted successfully.');
+        return redirect()->route('admin.departments.index')->with('success', 'Department deleted successfully.')->with('toast_title', 'Department deleted');
     }
 
     /**

@@ -45,6 +45,7 @@ class User extends Authenticatable
         'work_arrangement',
         'weekly_hours',
         'normal_working_hours',
+        'leave_allowance',
     ];
 
     /**
@@ -71,12 +72,28 @@ class User extends Authenticatable
             'probation_end_date' => 'date',
             'date_of_birth' => 'date',
             'password' => 'hashed',
+            'leave_allowance' => 'decimal:2',
         ];
     }
 
     public function manager()
     {
         return $this->belongsTo(self::class, 'manager_id');
+    }
+
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class, 'employee_id');
+    }
+
+    public function attendanceRecords()
+    {
+        return $this->hasMany(AttendanceRecord::class, 'employee_id');
+    }
+
+    public function absenceRecords()
+    {
+        return $this->hasMany(AbsenceRecord::class, 'employee_id');
     }
 
     public function departmentRecord()

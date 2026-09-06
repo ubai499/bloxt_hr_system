@@ -55,9 +55,6 @@
     </div>
 
     <div class="app-content">
-        @if (session('success'))
-            <div class="alert alert-success" role="alert">{{ session('success') }}</div>
-        @endif
 
         <section id="tab-directory" class="{{ $activeTab === 'directory' ? '' : 'd-none' }}">
             <div class="table-panel">

@@ -26,6 +26,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('/attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
+    Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
     Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     Route::get('/attendance/{record}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
     Route::put('/attendance/{record}', [AttendanceController::class, 'update'])->name('attendance.update');
@@ -33,12 +34,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/attendance/{record}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
     Route::get('/attendance/absence/create', [AttendanceController::class, 'createAbsence'])->name('attendance.absence.create');
     Route::post('/attendance/absence', [AttendanceController::class, 'storeAbsence'])->name('attendance.absence.store');
+    Route::get('/attendance/absence/{absence}', [AttendanceController::class, 'showAbsence'])->name('attendance.absence.show');
     Route::get('/attendance/absence/{absence}/edit', [AttendanceController::class, 'editAbsence'])->name('attendance.absence.edit');
     Route::put('/attendance/absence/{absence}', [AttendanceController::class, 'updateAbsence'])->name('attendance.absence.update');
     Route::delete('/attendance/absence/{absence}', [AttendanceController::class, 'destroyAbsence'])->name('attendance.absence.destroy');
     Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
     Route::get('/leave/create', [LeaveController::class, 'create'])->name('leave.create');
+    Route::get('/leave/export', [LeaveController::class, 'export'])->name('leave.export');
     Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
+    Route::get('/leave/{leaveRequest}', [LeaveController::class, 'show'])->name('leave.show');
     Route::get('/leave/{leaveRequest}/edit', [LeaveController::class, 'edit'])->name('leave.edit');
     Route::put('/leave/{leaveRequest}', [LeaveController::class, 'update'])->name('leave.update');
     Route::patch('/leave/{leaveRequest}/status', [LeaveController::class, 'updateStatus'])->name('leave.status.update');

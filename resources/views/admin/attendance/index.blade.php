@@ -1,18 +1,86 @@
 @extends('layouts.master')
-@php($statusClass = fn ($s) => match ($s) {'Present','Remote','Office','Business Travel','Training'=>'badge-success','Unauthorised Absence'=>'badge-danger',default=>'badge-warning'})
-@section('title','Attendance | Bloxt HR')
+@section('title', 'Attendance Bloxt People & Compliance')
+@section('meta_description', 'Attendance and absence records for Bloxt.')
+@push('vendor-styles')
+<link rel="stylesheet" href="{{ asset('assets/css/vendor/dataTables.bootstrap5.min.css') }}">
+@endpush
+@push('styles')
+<style>
+.absence-record-trigger { font: inherit; color: inherit; }
+.absence-record-trigger:focus-visible { outline: 2px solid #6B6B24; outline-offset: 3px; }
+.record-highlight > td { background: #F3F3E2 !important; }
+</style>
+@endpush
 @section('content')
-<div class="page-header-bar"><div class="d-flex justify-content-between align-items-start flex-wrap gap-3"><div><h1 class="page-title">Attendance</h1><p class="page-subtitle">Daily attendance records and absence management.</p></div><button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#{{ $activeTab==='absence'?'absenceModal':'attendanceModal' }}"><i class="bi bi-calendar-check"></i> {{ $activeTab==='absence'?'Record Absence':'Record Attendance' }}</button></div><ul class="nav profile-tabs mt-4"><li class="nav-item"><a class="nav-link {{ $activeTab==='attendance'?'active':'' }}" href="{{ route('admin.attendance.index') }}">Daily Attendance</a></li><li class="nav-item"><a class="nav-link {{ $activeTab==='absence'?'active':'' }}" href="{{ route('admin.attendance.index',['tab'=>'absence']) }}">Absence</a></li></ul></div>
-<div class="app-content">@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if($errors->any())<div class="alert alert-danger" role="alert"><strong>Record was not saved.</strong><ul class="mb-0 mt-2">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-@if($activeTab==='attendance')<section class="table-panel"><form class="table-toolbar" method="GET"><div class="table-toolbar-filters"><input class="form-control form-control-sm" type="date" name="date" value="{{ request('date') }}" style="width:auto"><select class="form-select form-select-sm" name="status" style="width:auto"><option value="">All statuses</option>@foreach($statuses as $status)<option @selected(request('status')===$status)>{{ $status }}</option>@endforeach</select><select class="form-select form-select-sm" name="employee" style="width:auto"><option value="">All employees</option>@foreach($employees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</select><button class="btn btn-sm btn-light-custom">Filter</button></div><button class="btn btn-sm btn-light-custom" type="button"><i class="bi bi-download"></i> Export</button></form><div class="table-responsive"><table class="table-app"><thead><tr><th>Employee</th><th>Date</th><th>Expected Start</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Location</th><th>Status</th><th>Notes</th><th>Reviewed</th><th class="text-end">Actions</th></tr></thead><tbody>@forelse($attendance as $record)<tr><td>{{ $record->employee->name }}</td><td>{{ $record->date->format('d M Y') }}</td><td>{{ $record->expected_start?substr($record->expected_start,0,5):'-' }}</td><td>{{ $record->clock_in?substr($record->clock_in,0,5):'-' }}</td><td>{{ $record->clock_out?substr($record->clock_out,0,5):'-' }}</td><td>{{ $record->hours }}</td><td>{{ $record->work_location?:'N/A' }}</td><td><span class="status-badge {{ $statusClass($record->status) }}">{{ $record->status }}</span></td><td>{{ $record->notes?:'-' }}</td><td>@if($record->manager_reviewed)<i class="bi bi-check-circle text-success"></i>@else<form method="POST" action="{{ route('admin.attendance.review',$record) }}">@csrf @method('PATCH')<button class="btn btn-sm btn-outline-primary">Mark reviewed</button></form>@endif</td><td class="text-end text-nowrap"><a class="btn btn-sm btn-light-custom" href="{{ route('admin.attendance.edit',$record) }}" title="Edit"><i class="bi bi-pencil"></i></a><form class="d-inline" method="POST" action="{{ route('admin.attendance.destroy',$record) }}" onsubmit="return confirm('Delete this attendance record?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button></form></td></tr>@empty<tr><td colspan="11" class="text-center py-5 text-meta">No attendance records match these filters.</td></tr>@endforelse</tbody></table></div></section>@else <section class="table-panel"><div class="table-toolbar"><span class="fw-semibold">Absence records</span><button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#absenceModal">Record Absence</button></div><div class="table-responsive"><table class="table-app"><thead><tr><th>Employee</th><th>Date</th><th>Type</th><th>Reason</th><th>Expected Return</th><th>Authorised</th><th class="text-end">Actions</th></tr></thead><tbody>@forelse($absences as $absence)<tr><td>{{ $absence->employee->name }}</td><td>{{ $absence->date->format('d M Y') }}</td><td><span class="status-badge {{ $statusClass($absence->absence_type) }}">{{ $absence->absence_type }}</span></td><td>{{ $absence->reason?:'-' }}</td><td>{{ $absence->expected_return?->format('d M Y')?:'-' }}</td><td>{{ $absence->authorised?'Yes':'No' }}</td><td class="text-end text-nowrap"><a class="btn btn-sm btn-light-custom" href="{{ route('admin.attendance.absence.edit',$absence) }}" title="Edit"><i class="bi bi-pencil"></i></a><form class="d-inline" method="POST" action="{{ route('admin.attendance.absence.destroy',$absence) }}" onsubmit="return confirm('Delete this absence record?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button></form></td></tr>@empty<tr><td colspan="7" class="text-center py-5 text-meta">No absence records have been logged.</td></tr>@endforelse</tbody></table></div></section>@endif</div>
+      <div class="page-header-bar">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Attendance</h1>
+            <p class="page-subtitle">Daily attendance records and absence management.</p>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" id="recordAttendanceBtn"><i class="bi bi-calendar-check"></i> Record Attendance</button>
+          </div>
+        </div>
+        <ul class="nav profile-tabs mt-4" id="attTabs" role="tablist" aria-label="Attendance workspace">
+          <li class="nav-item"><button class="nav-link active" type="button" data-tab="attendance" id="attendanceTab" role="tab" aria-controls="tab-attendance" aria-selected="true">Daily Attendance</button></li>
+          <li class="nav-item"><button class="nav-link" type="button" data-tab="absence" id="absenceTab" role="tab" aria-controls="tab-absence" aria-selected="false">Absence</button></li>
+        </ul>
+      </div>
+
+      <div class="app-content">
+<div id="attendancePageError" class="alert alert-danger d-none" role="alert"></div>
+        <section id="tab-attendance" role="tabpanel" aria-labelledby="attendanceTab">
+          <div class="table-panel">
+            <div class="table-toolbar">
+              <div class="table-toolbar-filters">
+                <input type="date" class="form-control form-control-sm" id="attDateFilter" aria-label="Filter attendance by date" style="width:auto;">
+                <select class="form-select form-select-sm" id="attStatusFilter" aria-label="Filter attendance by status" style="width:auto;"><option value="">All statuses</option>@foreach ($statuses as $status)<option>{{ $status }}</option>@endforeach</select>
+                <select class="form-select form-select-sm" id="attEmployeeFilter" aria-label="Filter attendance by employee" style="width:auto;"><option value="">All employees</option>@foreach ($filterEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</select>
+              </div>
+              <div class="table-toolbar-actions">
+                <button class="btn btn-sm btn-light-custom" id="exportAttBtn"><i class="bi bi-download"></i> Export</button>
+              </div>
+            </div>
+            <table class="table-app" id="attendanceTable" style="width:100%;">
+              <thead><tr><th>Employee</th><th>Date</th><th>Expected Start</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Location</th><th>Status</th><th>Notes</th><th>Reviewed</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="tab-absence" role="tabpanel" aria-labelledby="absenceTab" class="d-none">
+          <div class="panel mb-4">
+            <div class="panel-header"><div><div class="panel-title">Review Alerts</div><div class="panel-desc">Automatically generated from attendance patterns these require review, not automatic conclusions of misconduct.</div></div></div>
+            <div id="alertsList" aria-live="polite"></div>
+          </div>
+          <div class="table-panel">
+            <div class="table-toolbar">
+              <div><span class="fw-semibold">Absence records</span></div>
+              <div class="table-toolbar-actions">
+                <button class="btn btn-sm btn-primary" id="recordAbsenceBtn"><i class="bi bi-plus-lg"></i> Record Absence</button>
+              </div>
+            </div>
+            <table class="table-app" id="absenceTable" style="width:100%;">
+              <thead><tr><th>Employee</th><th>Date</th><th>Type</th><th>Reason</th><th>Reported</th><th>Expected Return</th><th>Authorised</th><th>Follow-up</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
 @include('admin.attendance._record_modals')
 @endsection
-@if($errors->any())
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('{{ $activeTab === 'absence' ? 'absenceModal' : 'attendanceModal' }}')).show();
-            });
-        </script>
-    @endpush
-@endif
+@push('scripts')
+<script src="{{ asset('assets/js/vendor/jquery.min.js') }}"></script>
+<script src="{{ asset('assets/js/vendor/dataTables.min.js') }}"></script>
+<script src="{{ asset('assets/js/vendor/dataTables.bootstrap5.min.js') }}"></script>
+<script src="{{ asset('assets/js/app.js') }}"></script>
+<script>
+window.attendancePage = {{ Illuminate\Support\Js::from([
+    'initial' => $payload, 'indexUrl' => route('admin.attendance.index'),
+    'exportUrl' => route('admin.attendance.export'), 'today' => today()->toDateString(),
+    'activeTab' => $activeTab, 'errors' => $errors->toArray(), 'old' => old(),
+]) }};
+</script>
+<script src="{{ asset('assets/js/admin-attendance.js') }}"></script>
+@endpush

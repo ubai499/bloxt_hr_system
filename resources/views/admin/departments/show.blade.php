@@ -9,12 +9,6 @@
     </div>
 
     <div class="app-content">
-        @if (session('success'))
-            <div class="alert alert-success" role="alert">{{ session('success') }}</div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
-        @endif
 
         <section class="profile-header">
             <span class="avatar-circle avatar-lg"><i class="bi bi-diagram-3"></i></span>

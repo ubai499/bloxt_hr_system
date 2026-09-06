@@ -84,11 +84,12 @@
       modalEl.id = "globalConfirmModal";
       modalEl.tabIndex = -1;
       modalEl.setAttribute("aria-hidden", "true");
+      modalEl.setAttribute("aria-labelledby", "globalConfirmTitle");
       modalEl.innerHTML = `
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content ${config.confirmVariant === "danger" ? "modal-danger" : ""}">
             <div class="modal-header">
-              <h2 class="modal-title h5">${escapeHtml(config.title)}</h2>
+              <h2 class="modal-title h5" id="globalConfirmTitle">${escapeHtml(config.title)}</h2>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">${config.body}</div>
@@ -102,16 +103,31 @@
       const bsModal = new bootstrap.Modal(modalEl);
 
       let resolved = false;
+      let shown = false;
+      let choice;
+      const trigger = document.activeElement;
+      modalEl.addEventListener("shown.bs.modal", () => { shown = true; });
+      const hideWhenReady = () => {
+        // Bootstrap ignores hide() during its opening transition. Honour quick clicks too.
+        if (shown) bsModal.hide();
+        else modalEl.addEventListener("shown.bs.modal", () => bsModal.hide(), { once: true });
+      };
       modalEl.querySelector('[data-action="confirm"]').addEventListener("click", () => {
+        if (choice !== undefined) return;
+        choice = true;
         resolved = true;
-        bsModal.hide();
+        hideWhenReady();
         resolve(true);
       });
       modalEl.querySelector('[data-action="cancel"]').addEventListener("click", () => {
-        resolved = true;
+        if (choice !== undefined) return;
+        choice = false;
+        hideWhenReady();
       });
       modalEl.addEventListener("hidden.bs.modal", () => {
+        bsModal.dispose();
         modalEl.remove();
+        if (trigger && trigger.isConnected) trigger.focus();
         if (!resolved) resolve(false);
       });
       bsModal.show();

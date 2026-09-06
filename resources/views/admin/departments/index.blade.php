@@ -16,9 +16,6 @@
     </div>
 
     <div class="app-content">
-        @if (session('success'))
-            <div class="alert alert-success" role="alert">{{ session('success') }}</div>
-        @endif
 
         <section class="table-panel">
             <form class="table-toolbar" method="GET" action="{{ route('admin.departments.index') }}">

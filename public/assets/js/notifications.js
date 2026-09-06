@@ -25,6 +25,7 @@
 
   function toast(opts) {
     const config = Object.assign({ type: "info", title: "", text: "", duration: 5000 }, opts);
+    if (!Object.prototype.hasOwnProperty.call(ICONS, config.type)) config.type = "info";
     const stack = ensureToastStack();
     const el = document.createElement("div");
     el.className = `app-toast toast-${config.type}`;
@@ -32,11 +33,17 @@
     el.innerHTML = `
       <i class="bi ${ICONS[config.type] || ICONS.info} app-toast-icon"></i>
       <div class="app-toast-body">
-        ${config.title ? `<div class="app-toast-title">${config.title}</div>` : ""}
-        ${config.text ? `<div class="app-toast-text">${config.text}</div>` : ""}
       </div>
       <button type="button" class="app-toast-close" aria-label="Dismiss notification">&times;</button>
     `;
+    const body = el.querySelector(".app-toast-body");
+    for (const [className, value] of [["app-toast-title", config.title], ["app-toast-text", config.text]]) {
+      if (!value) continue;
+      const line = document.createElement("div");
+      line.className = className;
+      line.textContent = value;
+      body.appendChild(line);
+    }
     stack.appendChild(el);
     const remove = () => {
       el.style.transition = "opacity 0.2s ease";

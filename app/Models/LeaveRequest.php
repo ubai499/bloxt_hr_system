@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class LeaveRequest extends Model
 {
+    public const TYPES = ['Annual leave', 'Sick leave', 'Unpaid leave', 'Compassionate leave', 'Parental leave', 'Other leave'];
+
+    public const STATUSES = ['Pending', 'Approved', 'Rejected', 'Cancelled'];
+
     protected $fillable = [
         'employee_id',
         'leave_type',
@@ -18,6 +22,7 @@ class LeaveRequest extends Model
         'approved_by',
         'approved_at',
         'requested_at',
+        'rejection_reason',
     ];
 
     protected function casts(): array

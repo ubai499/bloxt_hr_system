@@ -112,7 +112,7 @@ class EmployeeController extends Controller
         });
 
         return redirect()->route('admin.employees.show', $employee)
-            ->with('success', 'Employee created successfully. They can now sign in with their email and password.');
+            ->with('success', 'Employee created successfully. They can now sign in with their email and password.')->with('toast_title', 'Employee created');
     }
 
     public function show(User $employee): View
@@ -148,7 +148,7 @@ class EmployeeController extends Controller
         $employee->update($validated);
 
         return redirect()->route('admin.employees.show', $employee)
-            ->with('success', 'Employee updated successfully.');
+            ->with('success', 'Employee updated successfully.')->with('toast_title', 'Employee updated');
     }
 
     public function destroy(User $employee): RedirectResponse
@@ -157,7 +157,7 @@ class EmployeeController extends Controller
         $employee->syncRoles([]);
         $employee->delete();
 
-        return redirect()->route('admin.employees.index')->with('success', 'Employee deleted successfully.');
+        return redirect()->route('admin.employees.index')->with('success', 'Employee deleted successfully.')->with('toast_title', 'Employee deleted');
     }
 
     /**
