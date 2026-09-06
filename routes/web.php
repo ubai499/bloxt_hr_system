@@ -24,6 +24,7 @@ Route::get('/home', [HomeController::class, 'index'])
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('/attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
     Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
