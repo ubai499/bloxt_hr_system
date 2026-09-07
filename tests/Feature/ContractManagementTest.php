@@ -58,8 +58,8 @@ class ContractManagementTest extends TestCase
         $this->get(route('admin.contracts.index'))->assertOk()
             ->assertSee('Documents')->assertSee('Upload Document')->assertSee('Retention metadata')
             ->assertSee('id="documentsTable"', false)->assertSee('id="docKpiRow"', false)
-            ->assertSee('Uploaded By')->assertSee('Classification')->assertSee('Contract file')
-            ->assertSee('admin-contracts.js')->assertDontSee('assets/js/storage.js')->assertDontSee('HR.db')
+            ->assertSee('Uploaded By')->assertSee('Classification')->assertSee('Document file')
+            ->assertSee('document-library.js')->assertDontSee('assets/js/storage.js')->assertDontSee('HR.db')
             ->assertViewHas('filters', fn ($filters) => $filters['category'] === 'Employment Contract');
         $this->get(route('admin.contracts.create'))->assertRedirect(route('admin.contracts.index', ['new' => 1]));
     }

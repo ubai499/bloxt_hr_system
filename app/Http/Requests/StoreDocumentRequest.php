@@ -11,19 +11,37 @@ class StoreDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('admin') ?? false;
+        return $this->routeIs('employee.documents.*')
+            ? ($this->user()?->hasRole('employee') ?? false)
+            : ($this->user()?->hasRole('admin') ?? false);
     }
 
     protected function prepareForValidation(): void
     {
         $this->merge(['title' => is_string($this->title) ? trim($this->title) : $this->title]);
+        $this->merge(['title' => is_string($this->title) ? trim($this->title) : $this->title]);
+
+        if ($this->routeIs('employee.documents.*') && ! $this->exists('employee_id')) {
+            $this->merge(['employee_id' => $this->user()->id]);
+        }
+        if ($this->routeIs('admin.employees.documents.store')) {
+            $this->merge(['employee_id' => $this->route('employee')->id, 'retention_category' => 'Standard (6 years)']);
+        }
     }
 
     public function rules(): array
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'employee_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
+            'employee_id' => [$this->routeIs('employee.documents.*') ? 'required' : 'nullable', 'integer', ...($this->routeIs('employee.documents.*') ? [Rule::in([$this->user()->id])] : []), function ($attribute, $value, $fail) {
+                if ($value === null || $value === '') {
+                    return;
+                }
+
+                if (! User::role('employee')->whereKey($value)->exists()) {
+                    $fail('Choose a valid employee.');
+                }
+            }],
                 if (! User::role('employee')->whereKey($value)->exists()) {
                     $fail('Choose a valid employee.');
                 }

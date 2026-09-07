@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDocumentRequest;
 use App\Models\Department;
+use App\Models\Document;
 use App\Models\EmployeeCompensation;
 use App\Models\RightToWorkCheck;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\DocumentStorage;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,8 +73,9 @@ class EmployeeController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $documentTitles = $request->validate(['document_titles' => ['nullable', 'array', 'max:20'], 'document_titles.*' => ['nullable', 'string', 'max:255']])['document_titles'] ?? [];
         $validated = $this->validatedData($request);
-        $employee = DB::transaction(function () use ($request, $validated) {
+        $employee = DB::transaction(function () use ($request, $validated, $documentTitles) {
             // The wizard has no password field; provision a secure temporary credential.
             $validated['password'] = $request->filled('password')
                 ? $request->input('password')
@@ -108,6 +112,17 @@ class EmployeeController extends Controller
                     'notes' => $request->input('rtw_notes'),
                 ]);
             }
+            foreach ($documentTitles as $title) {
+                if (! filled($title)) {
+                    continue;
+                }
+                app(DocumentStorage::class)->create([
+                    'employee_id' => $employee->id, 'title' => trim($title), 'category' => 'Recruitment',
+                    'access_classification' => 'Confidential', 'issue_date' => $employee->start_date?->toDateString(),
+                    'retention_category' => 'Standard (6 years)', 'notes' => 'Recorded during onboarding.',
+                ], $request->user());
+            }
+
             return $employee;
         });
 
@@ -118,11 +133,21 @@ class EmployeeController extends Controller
     public function show(User $employee): View
     {
         $this->ensureEmployee($employee);
-        $employee->load(['manager', 'departmentRecord']);
+        $employee->load(['manager', 'departmentRecord', 'documents.uploader']);
 
         return view('admin.employees.show', [
             'employee' => $employee,
+            'documentCategories' => Document::CATEGORIES, 'documentClassifications' => Document::CLASSIFICATIONS,
         ]);
+    }
+
+    public function storeDocument(StoreDocumentRequest $request, User $employee): RedirectResponse
+    {
+        $this->ensureEmployee($employee);
+        app(DocumentStorage::class)->create($request->safe()->except(['attachment']), $request->user(), $request->file('attachment'));
+
+        return redirect()->route('admin.employees.show', ['employee' => $employee, 'tab' => 'documents'])
+            ->with('success', $request->validated('title').' has been added to the employee record.')->with('toast_title', 'Document saved');
     }
 
     public function edit(User $employee): View

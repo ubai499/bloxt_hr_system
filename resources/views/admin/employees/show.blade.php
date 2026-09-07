@@ -23,9 +23,17 @@
             </div>
             <div class="profile-header-actions">
                 <a href="{{ route('admin.employees.edit', $employee) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> Edit Employee</a>
+                <button type="button" class="btn btn-sm btn-light-custom" id="uploadDocBtn" data-bs-toggle="modal" data-bs-target="#uploadDocModal"><i class="bi bi-cloud-upload"></i> Upload Document</button>
             </div>
         </section>
 
+        <ul class="nav profile-tabs" id="profileTabs">
+            <li class="nav-item"><a class="nav-link {{ request('tab') !== 'documents' ? 'active' : '' }}" href="{{ route('admin.employees.show', $employee) }}">Overview</a></li>
+            <li class="nav-item"><a class="nav-link {{ request('tab') === 'documents' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'documents']) }}">Documents</a></li>
+        </ul>
+        @if (request('tab') === 'documents')
+            @include('admin.employees._documents')
+        @else
         <div class="dashboard-columns">
             <section class="panel">
                 <div class="panel-header"><div class="panel-title">Employment details</div></div>
@@ -53,5 +61,7 @@
             @method('DELETE')
             <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i> Delete Employee</button>
         </form>
+        @endif
     </div>
+    @include('admin.employees._document_upload')
 @endsection

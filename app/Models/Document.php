@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -27,6 +28,14 @@ class Document extends Model
         return $this->belongsTo(User::class, 'employee_id');
     }
 
+    public function scopeVisibleTo(Builder $query, User $user, bool $selfService = false): Builder
+    {
+        if ($user->hasRole('admin') && ! $selfService) {
+            return $query;
+        }
+
+        return $user->hasRole('employee') ? $query->where('employee_id', $user->id) : $query->whereRaw('1 = 0');
+    }
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');

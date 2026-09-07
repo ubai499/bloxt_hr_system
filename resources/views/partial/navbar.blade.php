@@ -27,7 +27,7 @@
             'heading' => 'Employment',
             'items' => [
                 ['label' => 'Contracts', 'icon' => 'bi-file-earmark-text', 'href' => $isAdmin ? route('admin.contracts.index') : '#', 'active' => request()->routeIs('admin.contracts.*'), 'disabled' => ! $isAdmin],
-                ['label' => 'Documents', 'icon' => 'bi-folder2-open', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Documents', 'icon' => 'bi-folder2-open', 'href' => route($isAdmin ? 'admin.documents.index' : 'employee.documents.index'), 'active' => request()->routeIs('admin.documents.*', 'employee.documents.*'), 'disabled' => false],
                 ['label' => 'Recruitment', 'icon' => 'bi-person-plus', 'href' => '#', 'active' => false, 'disabled' => true],
             ],
         ],

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\LeaveController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Auth;
@@ -56,8 +57,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/contracts/export', [ContractController::class, 'export'])->name('contracts.export');
     Route::get('/contracts/{document}/download', [ContractController::class, 'download'])->name('contracts.download');
     Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+    Route::get('/documents/search', [DocumentController::class, 'search'])->name('documents.search');
+    Route::get('/documents/export', [DocumentController::class, 'export'])->name('documents.export');
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::post('/employees/{employee}/documents', [EmployeeController::class, 'storeDocument'])->name('employees.documents.store');
 });
 
 Route::middleware(['auth', 'role:employee'])->prefix('employee')->name('employee.')->group(function () {
     Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+    Route::get('/documents/search', [DocumentController::class, 'search'])->name('documents.search');
+    Route::get('/documents/export', [DocumentController::class, 'export'])->name('documents.export');
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
 });

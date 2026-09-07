@@ -9,6 +9,7 @@
         ['label' => 'Record Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Record Absence', 'icon' => 'bi-clipboard-x', 'href' => route('admin.attendance.absence.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Create Leave Request', 'icon' => 'bi-airplane', 'href' => $user?->hasRole('admin') ? route('admin.leave.create') : '#', 'visible' => $user?->hasRole('admin')],
+        ['label' => 'Upload Document', 'icon' => 'bi-cloud-upload', 'href' => route($user?->hasRole('admin') ? 'admin.documents.create' : 'employee.documents.create'), 'visible' => $user?->hasAnyRole(['admin', 'employee'])],
     ];
 @endphp
 
@@ -19,7 +20,7 @@
 
     <div class="header-search">
         <i class="bi bi-search"></i>
-        <input type="search" placeholder="Search employees, documents, tasks..." aria-label="Global search">
+        <input type="search" id="globalSearchInput" data-document-search-url="{{ route($user?->hasRole('admin') ? 'admin.documents.search' : 'employee.documents.search') }}" placeholder="Search employees, documents, tasks..." aria-label="Global search" aria-controls="globalSearchResults" aria-expanded="false" autocomplete="off" maxlength="255">
         <div class="dropdown-menu shadow-sm" id="globalSearchResults" style="width:100%; max-height:360px; overflow-y:auto;">
             <div class="px-3 py-3 text-meta">Search suggestions will appear here as more modules are connected.</div>
         </div>

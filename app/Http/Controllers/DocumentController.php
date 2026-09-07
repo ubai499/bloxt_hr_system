@@ -1,23 +1,21 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Models\Document;
 use App\Models\User;
+use App\Services\DocumentStorage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class ContractController extends Controller
+class DocumentController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
@@ -27,67 +25,34 @@ class ContractController extends Controller
             return response()->json(['rows' => $rows, 'today' => today()->toDateString()]);
         }
 
-        return view('admin.contracts.index', [
-            'rows' => $rows, 'filters' => $filters,
-            'employees' => User::role('employee')->orderBy('name')->get(['id', 'name']),
+        return view('documents.index', [
+            'rows' => $rows, 'filters' => $filters, 'routePrefix' => $this->routePrefix(), 'selfService' => $this->selfService(), 'defaultCategory' => $this->defaultCategory(),
+            'employees' => User::role('employee')->when($this->selfService(), fn ($query) => $query->whereKey($request->user()->id))->orderBy('name')->get(['id', 'name']),
             'categories' => Document::CATEGORIES, 'statuses' => Document::STATUSES,
             'classifications' => Document::CLASSIFICATIONS, 'retentionCategories' => Document::RETENTION_CATEGORIES,
         ]);
     }
 
-    public function create(): RedirectResponse
+    public function create(Request $request): RedirectResponse
     {
-        return redirect()->route('admin.contracts.index', ['new' => 1]);
+        return redirect()->route($this->routePrefix().'.index', ['new' => 1, 'employee' => $this->filters($request)['employee']]);
     }
 
     public function store(StoreDocumentRequest $request): JsonResponse|RedirectResponse
     {
-        $path = null;
-        try {
-            if ($request->hasFile('attachment')) {
-                $path = $request->file('attachment')->store('contracts', 'local');
-                if (! $path) {
-                    throw ValidationException::withMessages(['attachment' => 'The file could not be saved. Please try again.']);
-                }
-            }
-            $document = DB::transaction(function () use ($request, $path) {
-                $data = $request->validated();
-                unset($data['attachment']);
-                $employee = isset($data['employee_id']) ? User::findOrFail($data['employee_id']) : null;
-                $document = Document::create([
-                    ...$data, 'employee_name' => $employee?->name,
-                    'uploaded_by' => $request->user()->id, 'uploader_name' => $request->user()->name,
-                    'upload_date' => today(), 'status' => 'Valid', 'archive_status' => 'Active', 'version' => 1,
-                    'file_path' => $path,
-                    'file_name' => $request->file('attachment') ? mb_substr(basename(str_replace('\\', '/', $request->file('attachment')->getClientOriginalName())), 0, 255) : null,
-                    'file_mime' => $request->file('attachment')?->getMimeType(),
-                    'file_size' => $request->file('attachment')?->getSize(),
-                ]);
-                DB::table('document_activities')->insert([
-                    'document_id' => $document->id, 'actor_id' => $request->user()->id,
-                    'actor_name' => $request->user()->name, 'action' => 'Document created',
-                    'metadata' => json_encode($document->toArray(), JSON_THROW_ON_ERROR), 'created_at' => now(),
-                ]);
-
-                return $document;
-            });
-        } catch (\Throwable $exception) {
-            if ($path) {
-                Storage::disk('local')->delete($path);
-            }
-            throw $exception;
-        }
+        $document = app(DocumentStorage::class)->create($request->safe()->except(['attachment']), $request->user(), $request->file('attachment'), $request->routeIs('admin.contracts.*') ? 'contracts' : 'documents');
 
         $message = $document->title.' has been added to the library.';
 
         return $request->expectsJson()
             ? response()->json(['message' => $message, 'id' => $document->id], 201)
-            : redirect()->route('admin.contracts.index', ['category' => $document->category])
+            : redirect()->route($this->routePrefix().'.index', ['category' => $document->category])
                 ->with('success', $message)->with('toast_title', 'Document saved');
     }
 
     public function download(Document $document): StreamedResponse
     {
+        abort_unless(Document::visibleTo(request()->user(), $this->selfService())->whereKey($document->id)->exists(), 404);
         abort_unless($document->file_path && Storage::disk('local')->exists($document->file_path), 404);
 
         return Storage::disk('local')->download($document->file_path, $document->file_name, [
@@ -129,7 +94,7 @@ class ContractController extends Controller
         }, 'documents.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
-    private function filters(Request $request): array
+    protected function filters(Request $request): array
     {
         $data = $request->validate([
             'category' => ['nullable', Rule::in(['all', ...Document::CATEGORIES])],
@@ -138,20 +103,44 @@ class ContractController extends Controller
             'search' => ['nullable', 'string', 'max:255'],
         ]);
 
-        return ['category' => $data['category'] ?? 'Employment Contract', 'status' => $data['status'] ?? 'all', 'employee' => $data['employee'] ?? 'all', 'search' => $data['search'] ?? ''];
+        return ['category' => $data['category'] ?? $this->defaultCategory(), 'status' => $data['status'] ?? 'all', 'employee' => $this->selfService() ? (string) $request->user()->id : (string) ($data['employee'] ?? 'all'), 'search' => $data['search'] ?? ''];
     }
 
-    private function rows(): Collection
+    protected function rows(): Collection
     {
-        return Document::with(['employee', 'uploader'])->orderBy('id')->get()->map(fn ($doc) => [
+        return Document::visibleTo(request()->user(), $this->selfService())->with(['employee', 'uploader'])->orderBy('id')->get()->map(fn ($doc) => [
             'id' => $doc->id, 'title' => $doc->title, 'category' => $doc->category,
             'employee_id' => $doc->employee_id, 'employee' => $doc->employee?->name ?? $doc->employee_name ?? 'Company-wide',
             'issue_date' => $doc->issue_date?->toDateString(), 'expiry_date' => $doc->expiry_date?->toDateString(),
             'status' => $doc->displayStatus(), 'access_classification' => $doc->access_classification,
             'uploaded_by' => $doc->uploader?->name ?? $doc->uploader_name,
-            'download_url' => $doc->file_path ? route('admin.contracts.download', $doc) : null,
+            'download_url' => $doc->file_path ? route($this->routePrefix().'.download', $doc) : null,
         ]);
     }
-}
 
+    protected function routePrefix(): string
+    {
+        return $this->selfService() ? 'employee.documents' : 'admin.documents';
+    }
+
+    protected function defaultCategory(): string
+    {
+        return 'all';
+    }
+
+    protected function selfService(): bool
+    {
+        return request()->routeIs('employee.*');
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $data = $request->validate(['q' => ['required', 'string', 'min:2', 'max:255']]);
+        $needle = mb_strtolower($data['q']);
+        $documents = Document::visibleTo($request->user(), $this->selfService())->orderBy('title')->get(['id', 'title'])
+            ->filter(fn ($document) => str_contains(mb_strtolower($document->title), $needle))->take(4)
+            ->map(fn ($document) => ['title' => $document->title, 'url' => route($this->routePrefix().'.index', ['highlight' => $document->id])])->values();
+
+        return response()->json(['documents' => $documents]);
+    }
 }
