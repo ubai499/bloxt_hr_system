@@ -1,0 +1,155 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDocumentRequest;
+use App\Models\Document;
+use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class ContractController extends Controller
+{
+    public function index(Request $request): View|JsonResponse
+    {
+        $filters = $this->filters($request);
+        $rows = $this->rows();
+        if ($request->expectsJson()) {
+            return response()->json(['rows' => $rows, 'today' => today()->toDateString()]);
+        }
+
+        return view('admin.contracts.index', [
+            'rows' => $rows, 'filters' => $filters,
+            'employees' => User::role('employee')->orderBy('name')->get(['id', 'name']),
+            'categories' => Document::CATEGORIES, 'statuses' => Document::STATUSES,
+            'classifications' => Document::CLASSIFICATIONS, 'retentionCategories' => Document::RETENTION_CATEGORIES,
+        ]);
+    }
+
+    public function create(): RedirectResponse
+    {
+        return redirect()->route('admin.contracts.index', ['new' => 1]);
+    }
+
+    public function store(StoreDocumentRequest $request): JsonResponse|RedirectResponse
+    {
+        $path = null;
+        try {
+            if ($request->hasFile('attachment')) {
+                $path = $request->file('attachment')->store('contracts', 'local');
+                if (! $path) {
+                    throw ValidationException::withMessages(['attachment' => 'The file could not be saved. Please try again.']);
+                }
+            }
+            $document = DB::transaction(function () use ($request, $path) {
+                $data = $request->validated();
+                unset($data['attachment']);
+                $employee = isset($data['employee_id']) ? User::findOrFail($data['employee_id']) : null;
+                $document = Document::create([
+                    ...$data, 'employee_name' => $employee?->name,
+                    'uploaded_by' => $request->user()->id, 'uploader_name' => $request->user()->name,
+                    'upload_date' => today(), 'status' => 'Valid', 'archive_status' => 'Active', 'version' => 1,
+                    'file_path' => $path,
+                    'file_name' => $request->file('attachment') ? mb_substr(basename(str_replace('\\', '/', $request->file('attachment')->getClientOriginalName())), 0, 255) : null,
+                    'file_mime' => $request->file('attachment')?->getMimeType(),
+                    'file_size' => $request->file('attachment')?->getSize(),
+                ]);
+                DB::table('document_activities')->insert([
+                    'document_id' => $document->id, 'actor_id' => $request->user()->id,
+                    'actor_name' => $request->user()->name, 'action' => 'Document created',
+                    'metadata' => json_encode($document->toArray(), JSON_THROW_ON_ERROR), 'created_at' => now(),
+                ]);
+
+                return $document;
+            });
+        } catch (\Throwable $exception) {
+            if ($path) {
+                Storage::disk('local')->delete($path);
+            }
+            throw $exception;
+        }
+
+        $message = $document->title.' has been added to the library.';
+
+        return $request->expectsJson()
+            ? response()->json(['message' => $message, 'id' => $document->id], 201)
+            : redirect()->route('admin.contracts.index', ['category' => $document->category])
+                ->with('success', $message)->with('toast_title', 'Document saved');
+    }
+
+    public function download(Document $document): StreamedResponse
+    {
+        abort_unless($document->file_path && Storage::disk('local')->exists($document->file_path), 404);
+
+        return Storage::disk('local')->download($document->file_path, $document->file_name, [
+            'Content-Type' => $document->file_mime ?: 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $filters = $this->filters($request);
+        $sort = $request->validate(['sort' => ['nullable', 'integer', 'between:0,7'], 'direction' => ['nullable', Rule::in(['asc', 'desc'])]]);
+        $rows = $this->rows()->filter(function ($row) use ($filters) {
+            foreach (['category', 'status', 'employee'] as $key) {
+                if ($filters[$key] !== 'all' && (string) $row[$key === 'employee' ? 'employee_id' : $key] !== $filters[$key]) {
+                    return false;
+                }
+            }
+            $haystack = mb_strtolower(implode(' ', [$row['title'], $row['category'], $row['employee'], $row['issue_date'], $row['expiry_date'], $row['status'], $row['access_classification'], $row['uploaded_by']]));
+
+            return $filters['search'] === '' || str_contains($haystack, mb_strtolower($filters['search']));
+        });
+        $columns = ['title', 'category', 'employee', 'issue_date', 'expiry_date', 'status', 'access_classification', 'uploaded_by'];
+        $column = $columns[(int) ($sort['sort'] ?? 4)];
+        $rows = $rows->sortBy(fn ($row) => mb_strtolower((string) ($row[$column] ?? ($column === 'expiry_date' ? '9999-12-31' : ''))), SORT_NATURAL, ($sort['direction'] ?? 'asc') === 'desc');
+
+        return response()->streamDownload(function () use ($rows) {
+            $stream = fopen('php://output', 'w');
+            fputcsv($stream, ['Title', 'Category', 'Employee', 'Issue Date', 'Expiry Date', 'Status', 'Classification'], ',', '"', '');
+            foreach ($rows as $row) {
+                $values = [$row['title'], $row['category'], $row['employee'], $row['issue_date'], $row['expiry_date'], $row['status'], $row['access_classification']];
+                fputcsv($stream, array_map(function ($value) {
+                    $value = (string) ($value ?? '');
+
+                    return preg_match('/^[\s]*[=+@-]/u', $value) ? "'".$value : $value;
+                }, $values), ',', '"', '');
+            }
+            fclose($stream);
+        }, 'documents.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function filters(Request $request): array
+    {
+        $data = $request->validate([
+            'category' => ['nullable', Rule::in(['all', ...Document::CATEGORIES])],
+            'status' => ['nullable', Rule::in(['all', ...Document::STATUSES])],
+            'employee' => ['nullable', 'regex:/^(all|[1-9][0-9]*)$/'],
+            'search' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        return ['category' => $data['category'] ?? 'Employment Contract', 'status' => $data['status'] ?? 'all', 'employee' => $data['employee'] ?? 'all', 'search' => $data['search'] ?? ''];
+    }
+
+    private function rows(): Collection
+    {
+        return Document::with(['employee', 'uploader'])->orderBy('id')->get()->map(fn ($doc) => [
+            'id' => $doc->id, 'title' => $doc->title, 'category' => $doc->category,
+            'employee_id' => $doc->employee_id, 'employee' => $doc->employee?->name ?? $doc->employee_name ?? 'Company-wide',
+            'issue_date' => $doc->issue_date?->toDateString(), 'expiry_date' => $doc->expiry_date?->toDateString(),
+            'status' => $doc->displayStatus(), 'access_classification' => $doc->access_classification,
+            'uploaded_by' => $doc->uploader?->name ?? $doc->uploader_name,
+            'download_url' => $doc->file_path ? route('admin.contracts.download', $doc) : null,
+        ]);
+    }
+}

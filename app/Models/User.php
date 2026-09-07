@@ -86,6 +86,11 @@ class User extends Authenticatable
         return $this->hasMany(LeaveRequest::class, 'employee_id');
     }
 
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'employee_id');
+    }
+
     public function attendanceRecords()
     {
         return $this->hasMany(AttendanceRecord::class, 'employee_id');

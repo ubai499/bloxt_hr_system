@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AttendanceController;
+use App\Http\Controllers\Admin\ContractController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\EmployeeController;
@@ -50,6 +51,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/leave/{leaveRequest}', [LeaveController::class, 'destroy'])->name('leave.destroy');
     Route::resource('employees', EmployeeController::class);
     Route::resource('departments', DepartmentController::class);
+    Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
+    Route::get('/contracts/create', [ContractController::class, 'create'])->name('contracts.create');
+    Route::get('/contracts/export', [ContractController::class, 'export'])->name('contracts.export');
+    Route::get('/contracts/{document}/download', [ContractController::class, 'download'])->name('contracts.download');
+    Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
 });
 
 Route::middleware(['auth', 'role:employee'])->prefix('employee')->name('employee.')->group(function () {
