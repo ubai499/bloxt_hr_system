@@ -19,8 +19,6 @@ class StoreDocumentRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge(['title' => is_string($this->title) ? trim($this->title) : $this->title]);
-        $this->merge(['title' => is_string($this->title) ? trim($this->title) : $this->title]);
-
         if ($this->routeIs('employee.documents.*') && ! $this->exists('employee_id')) {
             $this->merge(['employee_id' => $this->user()->id]);
         }
@@ -34,14 +32,6 @@ class StoreDocumentRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'employee_id' => [$this->routeIs('employee.documents.*') ? 'required' : 'nullable', 'integer', ...($this->routeIs('employee.documents.*') ? [Rule::in([$this->user()->id])] : []), function ($attribute, $value, $fail) {
-                if ($value === null || $value === '') {
-                    return;
-                }
-
-                if (! User::role('employee')->whereKey($value)->exists()) {
-                    $fail('Choose a valid employee.');
-                }
-            }],
                 if (! User::role('employee')->whereKey($value)->exists()) {
                     $fail('Choose a valid employee.');
                 }

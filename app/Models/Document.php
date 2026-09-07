@@ -36,6 +36,7 @@ class Document extends Model
 
         return $user->hasRole('employee') ? $query->where('employee_id', $user->id) : $query->whereRaw('1 = 0');
     }
+
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
