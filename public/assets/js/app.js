@@ -58,7 +58,8 @@
     Expired: "danger", "Non-sponsored": "neutral", Rejected: "danger", "Unauthorised Absence": "danger",
     "Report Required": "danger", "Action Required": "danger", "Notice Period": "danger", Overdue: "danger",
     "Evidence Missing": "danger", Inactive: "neutral", Cancelled: "neutral", "Not Applicable": "neutral", Left: "neutral",
-    Sponsored: "accent", "In Progress": "info", Open: "info", "No Action": "success", "Not Reportable": "success"
+    Sponsored: "accent", "In Progress": "info", Open: "info", "On Hold": "warning", Closed: "neutral", Filled: "success",
+    Offered: "warning", Hired: "success", Withdrawn: "neutral", "No Action": "success", "Not Reportable": "success"
   };
 
   function statusBadge(status) {

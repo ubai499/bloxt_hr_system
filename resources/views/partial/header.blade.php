@@ -9,6 +9,7 @@
         ['label' => 'Record Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Record Absence', 'icon' => 'bi-clipboard-x', 'href' => route('admin.attendance.absence.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Create Leave Request', 'icon' => 'bi-airplane', 'href' => $user?->hasRole('admin') ? route('admin.leave.create') : '#', 'visible' => $user?->hasRole('admin')],
+        ['label' => 'New Vacancy', 'icon' => 'bi-person-plus', 'href' => route('admin.recruitment.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Upload Document', 'icon' => 'bi-cloud-upload', 'href' => route($user?->hasRole('admin') ? 'admin.documents.create' : 'employee.documents.create'), 'visible' => $user?->hasAnyRole(['admin', 'employee'])],
     ];
 @endphp

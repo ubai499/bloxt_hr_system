@@ -17,6 +17,11 @@ class Department extends Model
         return $this->hasMany(User::class);
     }
 
+    public function vacancies()
+    {
+        return $this->hasMany(Vacancy::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'Active');
