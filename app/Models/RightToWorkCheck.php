@@ -4,10 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RightToWorkCheck extends Model
 {
     use HasFactory;
+
+    public const METHODS = ['Online Home Office check', 'Manual document check', 'Other permitted method'];
+
+    public const STATUSES = ['Valid', 'Review Due', 'Expiring Soon', 'Expired', 'Evidence Missing', 'Follow-up Required', 'Not Applicable'];
 
     protected $fillable = [
         'employee_id',
@@ -15,6 +20,7 @@ class RightToWorkCheck extends Model
         'check_method',
         'performed_by',
         'immigration_category',
+        'restrictions',
         'permission_start',
         'permission_expiry',
         'follow_up_required',
@@ -35,25 +41,35 @@ class RightToWorkCheck extends Model
         ];
     }
 
-    public function employee()
+    public function employee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'employee_id');
     }
 
-    public function directoryStatus(): string
+    public function displayStatus(): string
     {
-        if (! $this->permission_expiry) {
-            return $this->status ?: 'Valid';
+        if ($this->permission_expiry) {
+            $daysUntilExpiry = now()->startOfDay()->diffInDays($this->permission_expiry->startOfDay(), false);
+
+            return match (true) {
+                $daysUntilExpiry < 0 => 'Expired',
+                $daysUntilExpiry <= 30 => 'Expiring Soon',
+                $daysUntilExpiry <= 90 => 'Review Due',
+                $this->follow_up_required || $this->status === 'Follow-up Required' => 'Follow-up Required',
+                default => 'Valid',
+            };
         }
 
-        $daysUntilExpiry = now()->startOfDay()->diffInDays($this->permission_expiry->startOfDay(), false);
+        if ($this->follow_up_required) {
+            return 'Follow-up Required';
+        }
 
-        return match (true) {
-            $daysUntilExpiry < 0 => 'Expired',
-            $daysUntilExpiry <= 30 => 'Expiring Soon',
-            $daysUntilExpiry <= 90 => 'Review Due',
-            default => 'Valid',
-        };
+        return in_array($this->status, self::STATUSES, true) ? $this->status : 'Valid';
+    }
+
+    public function directoryStatus(): string
+    {
+        return $this->displayStatus();
     }
 
     public function isSponsored(): bool

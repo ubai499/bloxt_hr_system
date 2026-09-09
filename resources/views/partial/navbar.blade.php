@@ -34,7 +34,7 @@
         [
             'heading' => 'Compliance',
             'items' => [
-                ['label' => 'Right to Work', 'icon' => 'bi-patch-check', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Right to Work', 'icon' => 'bi-patch-check', 'href' => route('admin.right-to-work.index'), 'active' => request()->routeIs('admin.right-to-work.*'), 'disabled' => false],
                 ['label' => 'Immigration Records', 'icon' => 'bi-passport', 'href' => '#', 'active' => false, 'disabled' => true],
                 ['label' => 'Sponsor Compliance', 'icon' => 'bi-shield-check', 'href' => '#', 'active' => false, 'disabled' => true],
                 ['label' => 'Compliance Calendar', 'icon' => 'bi-calendar-week', 'href' => '#', 'active' => false, 'disabled' => true],

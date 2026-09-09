@@ -133,7 +133,7 @@ class EmployeeController extends Controller
     public function show(User $employee): View
     {
         $this->ensureEmployee($employee);
-        $employee->load(['manager', 'departmentRecord', 'documents.uploader']);
+        $employee->load(['manager', 'departmentRecord', 'documents.uploader', 'rightToWorkChecks' => fn ($query) => $query->latest('check_date')->orderByDesc('id')]);
 
         return view('admin.employees.show', [
             'employee' => $employee,
