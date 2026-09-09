@@ -90,9 +90,12 @@ class EmployeeController extends Controller
                     'annual_salary' => $request->input('annual_salary'),
                     'salary_frequency' => $request->input('salary_frequency', 'Annual'),
                     'hourly_rate' => $request->input('hourly_rate'),
+                    'contracted_hours' => $employee->weekly_hours,
+                    'previous_salary' => null,
                     'effective_date' => $request->input('salary_effective_date'),
                     'reason' => $request->input('salary_reason'),
-                    'authorised_by' => $request->input('authorised_by'),
+                    'authorised_by' => filled($request->input('authorised_by')) ? $request->input('authorised_by') : $request->user()->name,
+                    'recorded_by' => $request->user()->name,
                 ]);
             }
 
@@ -133,7 +136,13 @@ class EmployeeController extends Controller
     public function show(User $employee): View
     {
         $this->ensureEmployee($employee);
-        $employee->load(['manager', 'departmentRecord', 'documents.uploader', 'rightToWorkChecks' => fn ($query) => $query->latest('check_date')->orderByDesc('id')]);
+        $employee->load([
+            'manager',
+            'departmentRecord',
+            'documents.uploader',
+            'rightToWorkChecks' => fn ($query) => $query->latest('check_date')->orderByDesc('id'),
+            'compensations' => fn ($query) => $query->latest('effective_date')->orderByDesc('id'),
+        ]);
 
         return view('admin.employees.show', [
             'employee' => $employee,

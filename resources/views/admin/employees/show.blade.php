@@ -28,14 +28,17 @@
         </section>
 
         <ul class="nav profile-tabs" id="profileTabs">
-            <li class="nav-item"><a class="nav-link {{ ! in_array(request('tab'), ['documents', 'rtw'], true) ? 'active' : '' }}" href="{{ route('admin.employees.show', $employee) }}">Overview</a></li>
+            <li class="nav-item"><a class="nav-link {{ ! in_array(request('tab'), ['documents', 'rtw', 'salary'], true) ? 'active' : '' }}" href="{{ route('admin.employees.show', $employee) }}">Overview</a></li>
             <li class="nav-item"><a class="nav-link {{ request('tab') === 'documents' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'documents']) }}">Documents</a></li>
             <li class="nav-item"><a class="nav-link {{ request('tab') === 'rtw' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'rtw']) }}">Right to Work</a></li>
+            <li class="nav-item"><a class="nav-link {{ request('tab') === 'salary' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'salary']) }}">Salary</a></li>
         </ul>
         @if (request('tab') === 'documents')
             @include('admin.employees._documents')
         @elseif (request('tab') === 'rtw')
             @include('admin.employees._right_to_work')
+        @elseif (request('tab') === 'salary')
+            @include('admin.employees._salary')
         @else
         <div class="dashboard-columns">
             <section class="panel">

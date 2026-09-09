@@ -73,6 +73,7 @@ class User extends Authenticatable
             'date_of_birth' => 'date',
             'password' => 'hashed',
             'leave_allowance' => 'decimal:2',
+            'weekly_hours' => 'decimal:2',
         ];
     }
 
@@ -114,5 +115,20 @@ class User extends Authenticatable
     public function latestRightToWorkCheck()
     {
         return $this->hasOne(RightToWorkCheck::class, 'employee_id')->latestOfMany('check_date');
+    }
+
+    public function compensations()
+    {
+        return $this->hasMany(EmployeeCompensation::class, 'employee_id');
+    }
+
+    public function latestCompensation()
+    {
+        return $this->hasOne(EmployeeCompensation::class, 'employee_id')->latestOfMany('effective_date');
+    }
+
+    public function payrollRecords()
+    {
+        return $this->hasMany(PayrollRecord::class, 'employee_id');
     }
 }

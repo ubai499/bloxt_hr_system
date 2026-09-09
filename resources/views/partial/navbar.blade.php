@@ -43,8 +43,8 @@
         [
             'heading' => 'Finance',
             'items' => [
-                ['label' => 'Salary Records', 'icon' => 'bi-cash-stack', 'href' => '#', 'active' => false, 'disabled' => true],
-                ['label' => 'Payroll Records', 'icon' => 'bi-receipt', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Salary Records', 'icon' => 'bi-cash-stack', 'href' => route('admin.payroll.index'), 'active' => request()->routeIs('admin.payroll.*') && request('tab') !== 'payroll', 'disabled' => false],
+                ['label' => 'Payroll Records', 'icon' => 'bi-receipt', 'href' => route('admin.payroll.index', ['tab' => 'payroll']), 'active' => request()->routeIs('admin.payroll.*') && request('tab') === 'payroll', 'disabled' => false],
             ],
         ],
         [
