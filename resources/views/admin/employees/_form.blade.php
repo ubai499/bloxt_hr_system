@@ -33,6 +33,16 @@
                 <input id="employeePhone" name="phone" type="text" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $employee->phone) }}">
                 @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
+            <div class="mb-3">
+                <label for="contactVerifiedDate" class="form-label">Contact verified date</label>
+                <input id="contactVerifiedDate" name="contact_verified_date" type="date" class="form-control @error('contact_verified_date') is-invalid @enderror" value="{{ old('contact_verified_date', $employee->contact_verified_date?->format('Y-m-d')) }}">
+                @error('contact_verified_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-3">
+                <label for="contactVerifiedBy" class="form-label">Contact verified by</label>
+                <input id="contactVerifiedBy" name="contact_verified_by" type="text" class="form-control @error('contact_verified_by') is-invalid @enderror" value="{{ old('contact_verified_by', $employee->contact_verified_by) }}">
+                @error('contact_verified_by')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
         </div>
 
         <div class="mb-0">

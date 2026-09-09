@@ -54,12 +54,13 @@
   const STATUS_TONE_MAP = {
     Active: "success", Valid: "success", Approved: "success", Completed: "success", Current: "success", Reported: "success",
     "Review Due": "warning", "Expiring Soon": "warning", Pending: "warning", "Awaiting Information": "warning",
-    "Requires Review": "warning", "Follow-up Required": "warning", "On Leave": "warning", Probation: "warning",
+    "Requires Review": "warning", "Review Required": "warning", "Follow-up Required": "warning", "Action Plan Open": "warning", "On Leave": "warning", Probation: "warning", "A-Rating": "success",
     Expired: "danger", "Non-sponsored": "neutral", Rejected: "danger", "Unauthorised Absence": "danger",
     "Report Required": "danger", "Action Required": "danger", "Notice Period": "danger", Overdue: "danger",
     "Evidence Missing": "danger", Inactive: "neutral", Cancelled: "neutral", "Not Applicable": "neutral", Left: "neutral",
     Sponsored: "accent", "In Progress": "info", Open: "info", "On Hold": "warning", Closed: "neutral", Filled: "success",
-    Offered: "warning", Hired: "success", Withdrawn: "neutral", "No Action": "success", "Not Reportable": "success"
+    Offered: "warning", Hired: "success", Withdrawn: "neutral", "No Action": "success", "Not Reportable": "success",
+    High: "danger", Medium: "warning", Low: "info", Unread: "info", Read: "neutral", Resolved: "success"
   };
 
   function statusBadge(status) {

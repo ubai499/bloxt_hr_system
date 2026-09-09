@@ -28,10 +28,12 @@
         </section>
 
         <ul class="nav profile-tabs" id="profileTabs">
-            <li class="nav-item"><a class="nav-link {{ ! in_array(request('tab'), ['documents', 'rtw', 'salary'], true) ? 'active' : '' }}" href="{{ route('admin.employees.show', $employee) }}">Overview</a></li>
+            <li class="nav-item"><a class="nav-link {{ ! in_array(request('tab'), ['documents', 'rtw', 'salary', 'sponsorship', 'activity'], true) ? 'active' : '' }}" href="{{ route('admin.employees.show', $employee) }}">Overview</a></li>
             <li class="nav-item"><a class="nav-link {{ request('tab') === 'documents' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'documents']) }}">Documents</a></li>
             <li class="nav-item"><a class="nav-link {{ request('tab') === 'rtw' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'rtw']) }}">Right to Work</a></li>
             <li class="nav-item"><a class="nav-link {{ request('tab') === 'salary' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'salary']) }}">Salary</a></li>
+            <li class="nav-item"><a class="nav-link {{ request('tab') === 'sponsorship' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'sponsorship']) }}">Sponsorship</a></li>
+            <li class="nav-item"><a class="nav-link {{ request('tab') === 'activity' ? 'active' : '' }}" href="{{ route('admin.employees.show', ['employee' => $employee, 'tab' => 'activity']) }}">Activity</a></li>
         </ul>
         @if (request('tab') === 'documents')
             @include('admin.employees._documents')
@@ -39,6 +41,10 @@
             @include('admin.employees._right_to_work')
         @elseif (request('tab') === 'salary')
             @include('admin.employees._salary')
+        @elseif (request('tab') === 'sponsorship')
+            @include('admin.employees._sponsorship')
+        @elseif (request('tab') === 'activity')
+            @include('admin.employees._activity')
         @else
         <div class="dashboard-columns">
             <section class="panel">
@@ -50,6 +56,7 @@
                     <div class="detail-item"><dt>Work location</dt><dd>{{ $employee->work_location ?: '-' }}</dd></div>
                     <div class="detail-item"><dt>Manager</dt><dd>{{ $employee->manager?->name ?: 'Not assigned' }}</dd></div>
                     <div class="detail-item"><dt>Phone</dt><dd>{{ $employee->phone ?: '-' }}</dd></div>
+                    <div class="detail-item"><dt>Contact verified</dt><dd>{{ $employee->contact_verified_date?->format('d M Y') ?: 'Not verified' }}{{ $employee->contact_verified_by ? ' by '.$employee->contact_verified_by : '' }}</dd></div>
                 </dl>
             </section>
             <section class="panel">

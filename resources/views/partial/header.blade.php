@@ -11,6 +11,11 @@
         ['label' => 'Create Leave Request', 'icon' => 'bi-airplane', 'href' => $user?->hasRole('admin') ? route('admin.leave.create') : '#', 'visible' => $user?->hasRole('admin')],
         ['label' => 'New Vacancy', 'icon' => 'bi-person-plus', 'href' => route('admin.recruitment.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Record Right-to-Work Check', 'icon' => 'bi-patch-check', 'href' => route('admin.right-to-work.create'), 'visible' => $user?->hasRole('admin')],
+        ['label' => 'Record Immigration Permission', 'icon' => 'bi-passport', 'href' => route('admin.immigration.create'), 'visible' => $user?->hasRole('admin')],
+        ['label' => 'Record Sponsored Worker', 'icon' => 'bi-shield-check', 'href' => route('admin.sponsorship.create', ['tab' => 'workers', 'type' => 'worker']), 'visible' => $user?->hasRole('admin')],
+        ['label' => 'Record Sponsor Event', 'icon' => 'bi-shield-exclamation', 'href' => route('admin.sponsorship.create', ['tab' => 'events', 'type' => 'event']), 'visible' => $user?->hasRole('admin')],
+        ['label' => 'New Internal Review', 'icon' => 'bi-journal-check', 'href' => route('admin.compliance.create'), 'visible' => $user?->hasRole('admin')],
+        ['label' => 'Create HR Task', 'icon' => 'bi-list-task', 'href' => route('admin.reports.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Record Salary Change', 'icon' => 'bi-cash-stack', 'href' => route('admin.payroll.salaries.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Record Payroll Evidence', 'icon' => 'bi-receipt', 'href' => route('admin.payroll.create'), 'visible' => $user?->hasRole('admin')],
         ['label' => 'Upload Document', 'icon' => 'bi-cloud-upload', 'href' => route($user?->hasRole('admin') ? 'admin.documents.create' : 'employee.documents.create'), 'visible' => $user?->hasAnyRole(['admin', 'employee'])],
@@ -53,10 +58,20 @@
                 <i class="bi bi-bell"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-end p-0" style="width:340px; max-height:420px; overflow-y:auto;">
-                <div class="empty-state py-4">
-                    <div class="empty-state-icon"><i class="bi bi-bell-slash"></i></div>
-                    <div class="empty-state-text mb-0">You have no notifications right now.</div>
-                </div>
+                @forelse ($headerNotifications ?? [] as $notification)
+                    <a class="dropdown-item py-2" href="{{ $notification->href ?: route('admin.reports.index', ['tab' => 'notifications']) }}">
+                        <div class="fw-semibold">{{ $notification->title }}</div>
+                        <div class="text-meta">{{ \Illuminate\Support\Str::limit($notification->body, 80) }}</div>
+                    </a>
+                @empty
+                    <div class="empty-state py-4">
+                        <div class="empty-state-icon"><i class="bi bi-bell-slash"></i></div>
+                        <div class="empty-state-text mb-0">You have no notifications right now.</div>
+                    </div>
+                @endforelse
+                @if (($headerNotifications ?? collect())->isNotEmpty())
+                    <div class="text-center py-2"><a href="{{ route('admin.reports.index', ['tab' => 'notifications']) }}" class="small">View all notifications</a></div>
+                @endif
             </div>
         </div>
 

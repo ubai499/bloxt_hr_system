@@ -46,6 +46,8 @@ class User extends Authenticatable
         'weekly_hours',
         'normal_working_hours',
         'leave_allowance',
+        'contact_verified_date',
+        'contact_verified_by',
     ];
 
     /**
@@ -74,6 +76,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'leave_allowance' => 'decimal:2',
             'weekly_hours' => 'decimal:2',
+            'contact_verified_date' => 'date',
         ];
     }
 
@@ -130,5 +133,30 @@ class User extends Authenticatable
     public function payrollRecords()
     {
         return $this->hasMany(PayrollRecord::class, 'employee_id');
+    }
+
+    public function sponsorshipRecord()
+    {
+        return $this->hasOne(SponsorshipRecord::class, 'employee_id');
+    }
+
+    public function currentSponsorship()
+    {
+        return $this->hasOne(SponsorshipRecord::class, 'employee_id')->where('sponsorship_status', 'Current');
+    }
+
+    public function sponsorEvents()
+    {
+        return $this->hasMany(SponsorEvent::class, 'employee_id');
+    }
+
+    public function auditEvents()
+    {
+        return $this->hasMany(AuditEvent::class, 'employee_id')->latest('occurred_at')->latest('id');
+    }
+
+    public function hrTasks()
+    {
+        return $this->hasMany(HrTask::class, 'employee_id');
     }
 }

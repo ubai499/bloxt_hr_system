@@ -35,9 +35,9 @@
             'heading' => 'Compliance',
             'items' => [
                 ['label' => 'Right to Work', 'icon' => 'bi-patch-check', 'href' => route('admin.right-to-work.index'), 'active' => request()->routeIs('admin.right-to-work.*'), 'disabled' => false],
-                ['label' => 'Immigration Records', 'icon' => 'bi-passport', 'href' => '#', 'active' => false, 'disabled' => true],
-                ['label' => 'Sponsor Compliance', 'icon' => 'bi-shield-check', 'href' => '#', 'active' => false, 'disabled' => true],
-                ['label' => 'Compliance Calendar', 'icon' => 'bi-calendar-week', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Immigration Records', 'icon' => 'bi-passport', 'href' => route('admin.immigration.index'), 'active' => request()->routeIs('admin.immigration.*'), 'disabled' => false],
+                ['label' => 'Sponsor Compliance', 'icon' => 'bi-shield-check', 'href' => route('admin.sponsorship.index'), 'active' => request()->routeIs('admin.sponsorship.*'), 'disabled' => false],
+                ['label' => 'Compliance Calendar', 'icon' => 'bi-calendar-week', 'href' => route('admin.compliance.index', ['tab' => 'calendar']), 'active' => request()->routeIs('admin.compliance.*'), 'disabled' => false],
             ],
         ],
         [
@@ -50,8 +50,8 @@
         [
             'heading' => 'Insights',
             'items' => [
-                ['label' => 'Reports', 'icon' => 'bi-bar-chart', 'href' => '#', 'active' => false, 'disabled' => true],
-                ['label' => 'Audit Log', 'icon' => 'bi-journal-text', 'href' => '#', 'active' => false, 'disabled' => true],
+                ['label' => 'Reports', 'icon' => 'bi-bar-chart', 'href' => route('admin.reports.index'), 'active' => request()->routeIs('admin.reports.*'), 'disabled' => false],
+                ['label' => 'Audit Log', 'icon' => 'bi-journal-text', 'href' => route('admin.audit-log.index'), 'active' => request()->routeIs('admin.audit-log.*'), 'disabled' => false],
             ],
         ],
         [

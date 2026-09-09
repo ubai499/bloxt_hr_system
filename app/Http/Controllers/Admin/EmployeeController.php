@@ -142,6 +142,8 @@ class EmployeeController extends Controller
             'documents.uploader',
             'rightToWorkChecks' => fn ($query) => $query->latest('check_date')->orderByDesc('id'),
             'compensations' => fn ($query) => $query->latest('effective_date')->orderByDesc('id'),
+            'sponsorshipRecord',
+            'auditEvents' => fn ($query) => $query->limit(25),
         ]);
 
         return view('admin.employees.show', [
@@ -203,7 +205,7 @@ class EmployeeController extends Controller
         // Administrators can still set or replace a password through the edit workflow.
         $passwordRules = ['nullable', 'string', 'min:8', 'confirmed'];
 
-        foreach (['end_date', 'probation_end_date', 'permission_start', 'permission_expiry', 'rtw_check_date', 'rtw_next_review'] as $field) {
+        foreach (['end_date', 'probation_end_date', 'permission_start', 'permission_expiry', 'rtw_check_date', 'rtw_next_review', 'contact_verified_date'] as $field) {
             if ($request->input($field) === '') {
                 $request->merge([$field => null]);
             }
@@ -222,6 +224,8 @@ class EmployeeController extends Controller
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_relationship' => ['nullable', 'string', 'max:255'],
             'emergency_contact_phone' => ['nullable', 'string', 'max:50'],
+            'contact_verified_date' => ['nullable', 'date'],
+            'contact_verified_by' => ['nullable', 'string', 'max:255'],
             'job_title' => ['required', 'string', 'max:255'],
             'department_id' => ['required', 'exists:departments,id'],
             'employment_type' => ['required', Rule::in(['Full-time', 'Part-time', 'Contract', 'Temporary'])],
@@ -259,6 +263,8 @@ class EmployeeController extends Controller
             'emergency_contact_name' => filled($validated['emergency_contact_name'] ?? null) ? trim($validated['emergency_contact_name']) : null,
             'emergency_contact_relationship' => filled($validated['emergency_contact_relationship'] ?? null) ? trim($validated['emergency_contact_relationship']) : null,
             'emergency_contact_phone' => filled($validated['emergency_contact_phone'] ?? null) ? trim($validated['emergency_contact_phone']) : null,
+            'contact_verified_date' => $validated['contact_verified_date'] ?? null,
+            'contact_verified_by' => filled($validated['contact_verified_by'] ?? null) ? trim($validated['contact_verified_by']) : null,
             'job_title' => trim($validated['job_title']),
             'department_id' => $validated['department_id'],
             'employment_type' => $validated['employment_type'],

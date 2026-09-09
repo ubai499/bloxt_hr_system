@@ -26,13 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 if (current !== generation) return;
                 results.replaceChildren();
-                if (!data.documents.length) note('No matching documents.');
-                else {
-                    const label = document.createElement('h6'); label.className = 'dropdown-header'; label.textContent = 'Documents'; results.appendChild(label);
-                    data.documents.forEach(document => {
-                        const link = window.document.createElement('a'); link.className = 'dropdown-item'; link.href = document.url; link.textContent = document.title; results.appendChild(link);
+                const groups = [['employees', 'Employees'], ['documents', 'Documents'], ['tasks', 'Tasks']];
+                let found = false;
+                groups.forEach(([key, heading]) => {
+                    const items = data[key] || [];
+                    if (!items.length) return;
+                    found = true;
+                    const label = document.createElement('h6'); label.className = 'dropdown-header'; label.textContent = heading; results.appendChild(label);
+                    items.forEach(item => {
+                        const link = window.document.createElement('a'); link.className = 'dropdown-item'; link.href = item.url; link.textContent = item.title; results.appendChild(link);
                     });
-                }
+                });
+                if (!found) note('No matching results.');
                 results.classList.add('show'); input.setAttribute('aria-expanded', 'true');
             } catch (error) {
                 if (error.name === 'AbortError' || current !== generation) return;
