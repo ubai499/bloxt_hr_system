@@ -3,18 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Services\AdminDashboard;
 use Illuminate\Contracts\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(AdminDashboard $dashboard): View
     {
-        $employees = User::role('employee')->get();
-
-        return view('home', [
-            'employeeCount' => $employees->count(),
-            'activeEmployeeCount' => $employees->where('status', 'Active')->count(),
+        return view('admin.dashboard', [
+            'payload' => $dashboard->payload(),
         ]);
     }
 }

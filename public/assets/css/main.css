@@ -12903,6 +12903,14 @@ code, pre {
   background: #ECEEF1;
   color: #657180;
 }
+.metric-card.metric-accent-info .metric-icon {
+  background: #E7EFF7;
+  color: #3169A8;
+}
+.metric-card.metric-accent-accent .metric-icon {
+  background: rgba(182, 178, 71, 0.16);
+  color: #5C5A1C;
+}
 
 .action-item {
   display: flex;
