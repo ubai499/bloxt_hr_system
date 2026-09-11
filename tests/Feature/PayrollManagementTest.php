@@ -45,8 +45,6 @@ class PayrollManagementTest extends TestCase
             ->assertSee('Payroll')->assertSee('Salary Records')->assertSee('Payroll Records')
             ->assertSee('id="salaryTable"', false)->assertSee('id="payrollTable"', false)
             ->assertSee('id="salaryForm"', false)->assertSee('id="payrollForm"', false)
-            ->assertSee('never overwrites a previous entry')
-            ->assertSee('not a substitute for payroll')
             ->assertSee('admin-payroll.js')
             ->assertDontSee('assets/js/storage.js')->assertDontSee('HR.db');
         $this->get(route('admin.payroll.salaries.create', ['employee' => $this->employee->id]))

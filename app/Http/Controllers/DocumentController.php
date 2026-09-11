@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDocumentRequest;
 use App\Models\Document;
-use App\Models\HrTask;
 use App\Models\User;
 use App\Services\DocumentStorage;
 use Illuminate\Contracts\View\View;
@@ -141,16 +140,7 @@ class DocumentController extends Controller
         $documents = Document::visibleTo($request->user(), $this->selfService())->orderBy('title')->get(['id', 'title'])
             ->filter(fn ($document) => str_contains(mb_strtolower($document->title), $needle))->take(4)
             ->map(fn ($document) => ['title' => $document->title, 'url' => route($this->routePrefix().'.index', ['highlight' => $document->id])])->values();
-        $payload = ['documents' => $documents];
-        if ($request->user()->hasRole('admin') && ! $this->selfService()) {
-            $payload['employees'] = User::role('employee')->where('status', '!=', 'Left')->orderBy('name')->get(['id', 'name', 'employee_number'])
-                ->filter(fn ($employee) => str_contains(mb_strtolower($employee->name.' '.$employee->employee_number), $needle))->take(4)
-                ->map(fn ($employee) => ['title' => $employee->name, 'url' => route('admin.employees.show', $employee)])->values();
-            $payload['tasks'] = HrTask::query()->orderBy('title')->get(['id', 'title'])
-                ->filter(fn ($task) => str_contains(mb_strtolower($task->title), $needle))->take(4)
-                ->map(fn ($task) => ['title' => $task->title, 'url' => route('admin.reports.index', ['tab' => 'tasks', 'highlight' => $task->id])])->values();
-        }
 
-        return response()->json($payload);
+        return response()->json(['documents' => $documents]);
     }
 }

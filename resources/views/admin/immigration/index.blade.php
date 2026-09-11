@@ -27,10 +27,6 @@
         </div>
     </div>
     <div class="app-content">
-        <div class="disclaimer-note mb-4">
-            <i class="bi bi-info-circle"></i>
-            <span>Immigration status is taken from recorded permission dates for each individual. It is never inferred from nationality, and this system does not replace Home Office guidance or professional immigration advice.</span>
-        </div>
         <div id="immKpiRow" class="kpi-grid mb-4" aria-live="polite">
             @foreach (['total' => ['Permissions Tracked', 'primary'], 'expiring' => ['Nearing Expiry', 'warning'], 'expired' => ['Expired Permissions', 'danger'], 'indefinite' => ['No Expiry Recorded', 'neutral']] as $key => [$label, $accent])
                 <div class="metric-card metric-accent-{{ $payload['stats'][$key] && $accent !== 'neutral' ? $accent : 'neutral' }}"><span class="metric-label">{{ $label }}</span><span class="metric-value" data-stat="{{ $key }}">{{ $payload['stats'][$key] }}</span></div>

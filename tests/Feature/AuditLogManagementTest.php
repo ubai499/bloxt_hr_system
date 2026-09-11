@@ -41,7 +41,7 @@ class AuditLogManagementTest extends TestCase
     public function test_page_matches_the_prototype(): void
     {
         $this->get(route('admin.audit-log.index'))->assertOk()
-            ->assertSee('Audit Log')->assertSee('cannot be edited or removed')
+            ->assertSee('Audit Log')
             ->assertSee('id="auditTable"', false)->assertSee('admin-audit.js')
             ->assertDontSee('assets/js/storage.js')->assertDontSee('HR.db');
     }

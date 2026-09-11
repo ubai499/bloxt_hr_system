@@ -27,10 +27,6 @@
         </div>
     </div>
     <div class="app-content">
-        <div class="disclaimer-note mb-4">
-            <i class="bi bi-info-circle"></i>
-            <span>Right-to-work status is derived from recorded check and permission dates for each individual. It is never inferred from nationality, and this system does not replace Home Office right-to-work guidance.</span>
-        </div>
         <div id="rtwKpiRow" class="kpi-grid mb-4" aria-live="polite">
             @foreach (['total' => ['Total Tracked', 'primary'], 'due' => ['Checks Due / Expiring', 'warning'], 'expired' => ['Expired Permissions', 'danger'], 'missing' => ['Evidence Missing', 'danger']] as $key => [$label, $accent])
                 <div class="metric-card metric-accent-{{ $payload['stats'][$key] ? $accent : 'neutral' }}"><span class="metric-label">{{ $label }}</span><span class="metric-value" data-stat="{{ $key }}">{{ $payload['stats'][$key] }}</span></div>

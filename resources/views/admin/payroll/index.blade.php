@@ -36,7 +36,6 @@
     <div class="app-content">
         <div id="payrollPageError" class="alert alert-danger d-none" role="alert"></div>
         <section id="tab-salary" role="tabpanel" aria-labelledby="salaryTab" class="{{ $activeTab === 'salary' ? '' : 'd-none' }}">
-            <div class="disclaimer-note mb-4"><i class="bi bi-info-circle"></i><span>Salary records are retained as a full history updating a salary never overwrites a previous entry.</span></div>
             <div class="table-panel">
                 <div class="table-toolbar">
                     <div class="table-toolbar-search"><i class="bi bi-search"></i><input type="search" class="form-control" id="salarySearch" aria-label="Search salary records" maxlength="255" placeholder="Search employee…"></div>
@@ -49,7 +48,6 @@
             </div>
         </section>
         <section id="tab-payroll" role="tabpanel" aria-labelledby="payrollTab" class="{{ $activeTab === 'payroll' ? '' : 'd-none' }}">
-            <div class="disclaimer-note mb-4"><i class="bi bi-info-circle"></i><span>This module is for record management and is not a substitute for payroll or accounting software.</span></div>
             <div class="table-panel">
                 <div class="table-toolbar">
                     <div class="table-toolbar-search"><i class="bi bi-search"></i><input type="search" class="form-control" id="payrollSearch" aria-label="Search payroll evidence" maxlength="255" placeholder="Search employee, period or reference…"></div>

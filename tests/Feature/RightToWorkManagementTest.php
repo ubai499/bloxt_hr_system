@@ -43,7 +43,6 @@ class RightToWorkManagementTest extends TestCase
             ->assertSee('Right to Work')->assertSee('Record Right-to-Work Check')
             ->assertSee('id="rtwTable"', false)->assertSee('id="rtwForm"', false)
             ->assertSee('id="rtwDetailsModal"', false)->assertSee('admin-right-to-work.js')
-            ->assertSee('never inferred from nationality')
             ->assertDontSee('assets/js/storage.js')->assertDontSee('HR.db');
         $this->get(route('admin.right-to-work.create', ['employee' => $this->employee->id]))
             ->assertRedirect(route('admin.right-to-work.index', ['new' => 1, 'employee' => $this->employee->id]));

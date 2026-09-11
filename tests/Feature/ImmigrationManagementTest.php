@@ -41,7 +41,7 @@ class ImmigrationManagementTest extends TestCase
     {
         $this->get(route('admin.immigration.index'))->assertOk()
             ->assertSee('Immigration Records')->assertSee('Record Immigration Permission')
-            ->assertSee('id="immTable"', false)->assertSee('never inferred from nationality')
+            ->assertSee('id="immTable"', false)
             ->assertSee('admin-immigration.js')
             ->assertDontSee('assets/js/storage.js')->assertDontSee('HR.db');
         $this->get(route('admin.immigration.create', ['employee' => $this->employee->id]))

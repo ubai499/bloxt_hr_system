@@ -72,12 +72,12 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <aside class="app-sidebar" id="appSidebar" aria-label="Primary navigation">
-    <div class="sidebar-brand">
+    <a class="sidebar-brand" href="{{ $dashboardRoute }}" aria-label="Bloxt People &amp; Compliance dashboard">
         <span class="sidebar-brand-plate">
             <img src="{{ asset('assets/images/bloxt-logo.jpg') }}" alt="Bloxt Limited" class="sidebar-brand-logo">
         </span>
         <span class="sidebar-brand-tag">People &amp; Compliance</span>
-    </div>
+    </a>
 
     <nav class="sidebar-nav-scroll">
         @foreach ($navGroups as $group)

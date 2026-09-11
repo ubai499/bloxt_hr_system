@@ -28,7 +28,6 @@
         </div>
     </div>
     <div class="app-content">
-        <div class="disclaimer-note mb-4"><i class="bi bi-info-circle"></i><span>Recruitment channel and process requirements (such as any labour market test) vary by role and route. This system records the process actually followed rather than assuming one is universally required.</span></div>
         <div id="recruitmentKpis" class="kpi-grid mb-4" aria-live="polite">
             @foreach (['open' => ['Open Vacancies', 'primary'], 'in_progress' => ['Candidates In Progress', 'info'], 'offered' => ['Offers Made', 'warning'], 'hired' => ['Hired', 'success']] as $key => [$label, $accent])
                 <div class="metric-card metric-accent-{{ $accent }}"><span class="metric-label">{{ $label }}</span><span class="metric-value" data-stat="{{ $key }}">{{ $payload['stats'][$key] }}</span></div>

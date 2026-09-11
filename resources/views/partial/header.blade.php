@@ -27,14 +27,6 @@
         <i class="bi bi-list"></i>
     </button>
 
-    <div class="header-search">
-        <i class="bi bi-search"></i>
-        <input type="search" id="globalSearchInput" data-document-search-url="{{ route($user?->hasRole('admin') ? 'admin.documents.search' : 'employee.documents.search') }}" placeholder="Search employees, documents, tasks..." aria-label="Global search" aria-controls="globalSearchResults" aria-expanded="false" autocomplete="off" maxlength="255">
-        <div class="dropdown-menu shadow-sm" id="globalSearchResults" style="width:100%; max-height:360px; overflow-y:auto;">
-            <div class="px-3 py-3 text-meta">Search suggestions will appear here as more modules are connected.</div>
-        </div>
-    </div>
-
     <div class="header-actions">
         <div class="dropdown">
             <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -74,16 +66,6 @@
                 @endif
             </div>
         </div>
-
-        @if (Route::has('password.request'))
-            <a class="header-icon-btn" href="{{ route('password.request') }}" aria-label="Security tools" title="Security">
-                <i class="bi bi-shield-lock"></i>
-            </a>
-        @endif
-
-        <button class="header-icon-btn" type="button" aria-label="Help" title="Help">
-            <i class="bi bi-question-circle"></i>
-        </button>
 
         <div class="dropdown">
             <button class="header-user-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">

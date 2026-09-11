@@ -12,7 +12,6 @@
         <p class="page-subtitle">Immutable record of significant actions taken across the system. Only visible to authorised roles.</p>
     </div>
     <div class="app-content">
-        <div class="disclaimer-note mb-4"><i class="bi bi-shield-lock"></i><span>Audit events are created automatically by the system and cannot be edited or removed by ordinary users.</span></div>
         <div id="auditPageError" class="alert alert-danger d-none" role="alert"></div>
         <div class="table-panel">
             <div class="table-toolbar">

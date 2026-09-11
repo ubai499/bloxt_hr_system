@@ -13753,6 +13753,13 @@ table.dataTable .cell-secondary {
   gap: 6px;
   padding: 24px 24px 16px;
   flex-shrink: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.sidebar-brand:hover,
+.sidebar-brand:focus-visible {
+  text-decoration: none;
+  color: inherit;
 }
 .sidebar-brand .sidebar-brand-plate {
   background: #fff;
