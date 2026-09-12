@@ -14,9 +14,8 @@
 
         <div class="form-grid-2">
             <div class="mb-3">
-                <label for="employeeNumber" class="form-label">Employee number</label>
-                <input id="employeeNumber" name="employee_number" type="text" class="form-control @error('employee_number') is-invalid @enderror" value="{{ old('employee_number', $employee->employee_number) }}">
-                @error('employee_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <label for="employeeNumber" class="form-label">Employee ID</label>
+                <input id="employeeNumber" type="text" class="form-control" value="{{ $employee->employee_number ?: 'Not assigned' }}" readonly>
             </div>
             <div class="mb-3">
                 <label for="employeeName" class="form-label">Full name <span class="required-indicator">*</span></label>

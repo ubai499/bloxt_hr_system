@@ -10,6 +10,7 @@ use App\Models\EmployeeCompensation;
 use App\Models\RightToWorkCheck;
 use App\Models\User;
 use App\Services\DocumentStorage;
+use App\Services\EmployeeNumber;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -68,6 +69,7 @@ class EmployeeController extends Controller
             ]),
             'managers' => User::role('employee')->orderBy('name')->get(),
             'departments' => Department::active()->orderBy('name')->get(),
+            'nextEmployeeNumber' => app(EmployeeNumber::class)->next(),
         ]);
     }
 
@@ -80,6 +82,7 @@ class EmployeeController extends Controller
             $validated['password'] = $request->filled('password')
                 ? $request->input('password')
                 : Str::random(32);
+            $validated['employee_number'] = app(EmployeeNumber::class)->next();
             $employee = User::create($validated);
             Role::findOrCreate('employee');
             $employee->assignRole('employee');
@@ -212,7 +215,6 @@ class EmployeeController extends Controller
         }
 
         $validated = $request->validate([
-            'employee_number' => ['nullable', 'string', 'max:50', Rule::unique('users')->ignore($employee)],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($employee)],
             'phone' => ['nullable', 'string', 'max:50'],
@@ -251,7 +253,6 @@ class EmployeeController extends Controller
         ]);
 
         return [
-            'employee_number' => filled($validated['employee_number'] ?? null) ? trim($validated['employee_number']) : null,
             'name' => trim($validated['name']),
             'email' => trim($validated['email']),
             'phone' => filled($validated['phone'] ?? null) ? trim($validated['phone']) : null,

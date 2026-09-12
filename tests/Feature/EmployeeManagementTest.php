@@ -53,7 +53,6 @@ class EmployeeManagementTest extends TestCase
         $department = Department::create(['name' => 'People Operations', 'status' => 'Active']);
 
         $response = $this->actingAs($admin)->post(route('admin.employees.store'), [
-            'employee_number' => 'BXT-001',
             'name' => 'Taylor Jordan',
             'email' => 'taylor@example.com',
             'phone' => '07123456789',
@@ -76,6 +75,89 @@ class EmployeeManagementTest extends TestCase
             'employee_number' => 'BXT-001',
             'department_id' => $department->id,
         ]);
+    }
+
+    public function test_employee_ids_are_assigned_sequentially(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $department = Department::create(['name' => 'People Operations', 'status' => 'Active']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.employees.create'))
+            ->assertOk()
+            ->assertSee('BXT-001')
+            ->assertSee('Assigned automatically.');
+
+        $first = $this->actingAs($admin)->post(route('admin.employees.store'), $this->employeePayload($department, [
+            'name' => 'First Hire',
+            'email' => 'first@example.com',
+        ]));
+        $second = $this->actingAs($admin)->post(route('admin.employees.store'), $this->employeePayload($department, [
+            'name' => 'Second Hire',
+            'email' => 'second@example.com',
+            'employee_number' => 'BXT-999',
+        ]));
+
+        $firstEmployee = User::where('email', 'first@example.com')->firstOrFail();
+        $secondEmployee = User::where('email', 'second@example.com')->firstOrFail();
+
+        $first->assertRedirect(route('admin.employees.show', $firstEmployee));
+        $second->assertRedirect(route('admin.employees.show', $secondEmployee));
+        $this->assertSame('BXT-001', $firstEmployee->employee_number);
+        $this->assertSame('BXT-002', $secondEmployee->employee_number);
+    }
+
+    public function test_next_employee_id_follows_the_highest_existing_number(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $department = Department::create(['name' => 'People Operations', 'status' => 'Active']);
+        User::factory()->create(['employee_number' => 'BXT-009'])->assignRole('employee');
+
+        $this->actingAs($admin)
+            ->get(route('admin.employees.create'))
+            ->assertOk()
+            ->assertSee('BXT-010');
+
+        $this->actingAs($admin)->post(route('admin.employees.store'), $this->employeePayload($department, [
+            'name' => 'Next Hire',
+            'email' => 'next@example.com',
+        ]));
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'next@example.com',
+            'employee_number' => 'BXT-010',
+        ]);
+    }
+
+    public function test_employee_id_cannot_be_changed_when_updating(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $department = Department::create(['name' => 'People Operations', 'status' => 'Active']);
+        $employee = User::factory()->create([
+            'name' => 'Taylor Jordan',
+            'email' => 'taylor@example.com',
+            'employee_number' => 'BXT-001',
+            'job_title' => 'People Coordinator',
+            'department_id' => $department->id,
+            'employment_type' => 'Full-time',
+            'status' => 'Active',
+        ]);
+        $employee->assignRole('employee');
+
+        $this->actingAs($admin)->put(route('admin.employees.update', $employee), [
+            'employee_number' => 'BXT-500',
+            'name' => 'Taylor Jordan',
+            'email' => 'taylor@example.com',
+            'job_title' => 'People Coordinator',
+            'department_id' => $department->id,
+            'employment_type' => 'Full-time',
+            'status' => 'Active',
+        ])->assertRedirect(route('admin.employees.show', $employee));
+
+        $this->assertSame('BXT-001', $employee->fresh()->employee_number);
     }
 
     public function test_admin_can_create_a_department(): void
@@ -114,5 +196,26 @@ class EmployeeManagementTest extends TestCase
             ->assertOk()
             ->assertSee('Sponsored')
             ->assertSee('data-sponsored="1"', false);
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
+     */
+    private function employeePayload(Department $department, array $overrides = []): array
+    {
+        return array_merge([
+            'name' => 'Taylor Jordan',
+            'email' => 'taylor@example.com',
+            'phone' => '07123456789',
+            'job_title' => 'People Coordinator',
+            'department_id' => $department->id,
+            'employment_type' => 'Full-time',
+            'work_location' => 'London',
+            'start_date' => '2026-09-04',
+            'status' => 'Active',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ], $overrides);
     }
 }
